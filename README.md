@@ -1,2 +1,0 @@
-# BladeX
-BladeX 
