@@ -14,6 +14,10 @@ commands:
     description: "Iade menüsünü acar (Admin)"
     usage: /iade
     permission: bladex.admin
+  bladex:
+    description: "BladeX ana komut (reload için)"
+    usage: /bladex <reload>
+    permission: bladex.admin
   bladexreload:
     description: "Config'i yeniden yukler"
     usage: /bladexreload
