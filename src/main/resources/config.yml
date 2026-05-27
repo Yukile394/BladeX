@@ -1,156 +1,164 @@
 # ============================================================
-#   BladeX - Fear Craft Ozel Kiliclar
+#   BladeX - Silvera Özel Kılıçlar
 # ============================================================
 
-prefix: "&#00ccff&lBladeX &8» &r"
+prefix: "&#c0c0ff&lSilvera &8» &r"
 
 menu:
-  title: "Kılıçlar"
+  title: "&#c0c0ffKılıç Menüsü"
   size: 54
 
 swords:
+
   shulker:
     slot: 10
     material: NETHERITE_SWORD
-    display_name: "Shulker Kilici"
+    display_name: "&#d966ffShulker Kılıcı"
     lore:
-      - "&8&#e8473e&m          &8"
-      - " &#e8473e&lYetenek &8| &7Levitation Dalgasi"
-      - " &7Yakin dusmanlara yukari firlatma etkisi."
-      - " &7Etki alani &e{radius}&7 blok yaricap."
+      - "&8&#d966ff&m               &8"
+      - " &#d966ff&lYetenek &8» &7Levitasyon Dalgası"
+      - " &7Yakındaki düşmanları havaya savurur."
+      - " &7Etki Alanı: &e{radius} blok"
       - "&8"
-      - " &#e8473e⏱ &7Bekleme: &e{cooldown} saniye"
-      - "&8&#e8473e&m          &8"
-      - " &#e8473e&l» &7Sag tikla yetenegi kullan!"
+      - " &#d966ff⏱ &7Bekleme Süresi: &e{cooldown} saniye"
+      - "&8&#d966ff&m               &8"
+      - " &#d966ff&l▶ &7Sağ tıkla yeteneği kullan!"
     cooldown: 30
     radius: 6
 
   creeper:
     slot: 11
     material: NETHERITE_SWORD
-    display_name: "Creeper Kilici"
+    display_name: "&#33ff66Creeper Kılıcı"
     lore:
-      - "&8&#00e600&m          &8"
-      - " &#00e600&lYetenek &8| &7Patlama Dalgasi"
-      - " &7Dusmanlari geri firlatir ve &c6 hasar&7 verir."
-      - " &7Etki alani &e{radius}&7 blok yaricap."
+      - "&8&#33ff66&m               &8"
+      - " &#33ff66&lYetenek &8» &7Patlama Dalgası"
+      - " &7Düşmanları geri savurur"
+      - " &7ve &c6 Hasar&7 verir."
+      - " &7Etki Alanı: &e{radius} blok"
       - "&8"
-      - " &#00e600⏱ &7Bekleme: &e{cooldown} saniye"
-      - "&8&#00e600&m          &8"
-      - " &#00e600&l» &7Sag tikla yetenegi kullan!"
+      - " &#33ff66⏱ &7Bekleme Süresi: &e{cooldown} saniye"
+      - "&8&#33ff66&m               &8"
+      - " &#33ff66&l▶ &7Sağ tıkla yeteneği kullan!"
     cooldown: 25
     radius: 6
 
   orumcek:
     slot: 12
     material: NETHERITE_SWORD
-    display_name: "Orumcek Kilici"
+    display_name: "&#ff4444Örümcek Kılıcı"
     lore:
-      - "&8&#bd0000&m          &8"
-      - " &#bd0000&lYetenek &8| &7Ag Tuzagi"
-      - " &7Dusmanlarin ayagina &cOrumcek Agi&7 atar."
-      - " &7Ag &e3.5 saniye&7 sonra kaybolur."
-      - " &7Etki alani &e{radius}&7 blok yaricap."
+      - "&8&#ff4444&m               &8"
+      - " &#ff4444&lYetenek &8» &7Ağ Tuzağı"
+      - " &7Düşmanların ayağına örümcek ağı bırakır."
+      - " &7Ağlar &e3.5 saniye&7 sonra kaybolur."
+      - " &7Etki Alanı: &e{radius} blok"
       - "&8"
-      - " &#bd0000⏱ &7Bekleme: &e{cooldown} saniye"
-      - "&8&#bd0000&m          &8"
-      - " &#bd0000&l» &7Sag tikla yetenegi kullan!"
+      - " &#ff4444⏱ &7Bekleme Süresi: &e{cooldown} saniye"
+      - "&8&#ff4444&m               &8"
+      - " &#ff4444&l▶ &7Sağ tıkla yeteneği kullan!"
     cooldown: 60
     radius: 6
 
   phantom:
     slot: 13
     material: NETHERITE_SWORD
-    display_name: "Phantom Kilici"
+    display_name: "&#66ccffPhantom Kılıcı"
     lore:
-      - "&8&#0080ff&m          &8"
-      - " &#0080ff&lYetenek &8| &7Elytra Bozucu"
-      - " &7Dusmanlarin Elytra'sini &e3 saniye&7 kilitler."
-      - " &7Etki alani &e{radius}&7 blok yaricap."
+      - "&8&#66ccff&m               &8"
+      - " &#66ccff&lYetenek &8» &7Elytra Kilidi"
+      - " &7Yakındaki oyuncuların"
+      - " &7Elytra kullanımını &e3 saniye&7 engeller."
+      - " &7Etki Alanı: &e{radius} blok"
       - "&8"
-      - " &#0080ff⏱ &7Bekleme: &e{cooldown} saniye"
-      - "&8&#0080ff&m          &8"
-      - " &#0080ff&l» &7Sag tikla yetenegi kullan!"
+      - " &#66ccff⏱ &7Bekleme Süresi: &e{cooldown} saniye"
+      - "&8&#66ccff&m               &8"
+      - " &#66ccff&l▶ &7Sağ tıkla yeteneği kullan!"
     cooldown: 65
     radius: 6
 
   yildirim:
     slot: 14
     material: NETHERITE_SWORD
-    display_name: "Yildirim Kilici"
+    display_name: "&#ffee55Yıldırım Kılıcı"
     lore:
-      - "&8&#ffee00&m          &8"
-      - " &#ffee00&lYetenek &8| &7Yildirim Cagrisi"
-      - " &7Yakin dusmanlara &cyildirim&7 carptir."
-      - " &7Etki alani &e{radius}&7 blok yaricap."
+      - "&8&#ffee55&m               &8"
+      - " &#ffee55&lYetenek &8» &7Yıldırım Çağrısı"
+      - " &7Yakındaki düşmanlara"
+      - " &eşimşek düşürür."
+      - " &7Etki Alanı: &e{radius} blok"
       - "&8"
-      - " &#ffee00⏱ &7Bekleme: &e{cooldown} saniye"
-      - "&8&#ffee00&m          &8"
-      - " &#ffee00&l» &7Sag tikla yetenegi kullan!"
+      - " &#ffee55⏱ &7Bekleme Süresi: &e{cooldown} saniye"
+      - "&8&#ffee55&m               &8"
+      - " &#ffee55&l▶ &7Sağ tıkla yeteneği kullan!"
     cooldown: 30
     radius: 6
 
   ejderha:
     slot: 15
     material: NETHERITE_SWORD
-    display_name: "Ejderha Kilici"
+    display_name: "&#ff9933Ejderha Kılıcı"
     lore:
-      - "&8&#ffaa00&m          &8"
-      - " &#ffaa00&lYetenek &8| &7Ejderha Nefesi"
-      - " &7Dusmanlari &cAtese&7 verir ve &cWither II&7 yapar."
-      - " &7Etki alani &e{radius}&7 blok yaricap."
+      - "&8&#ff9933&m               &8"
+      - " &#ff9933&lYetenek &8» &7Ejderha Nefesi"
+      - " &7Düşmanları ateşe verir"
+      - " &7ve &cWither II&7 etkisi uygular."
+      - " &7Etki Alanı: &e{radius} blok"
       - "&8"
-      - " &#ffaa00⏱ &7Bekleme: &e{cooldown} saniye"
-      - "&8&#ffaa00&m          &8"
-      - " &#ffaa00&l» &7Sag tikla yetenegi kullan!"
+      - " &#ff9933⏱ &7Bekleme Süresi: &e{cooldown} saniye"
+      - "&8&#ff9933&m               &8"
+      - " &#ff9933&l▶ &7Sağ tıkla yeteneği kullan!"
     cooldown: 30
     radius: 6
 
   gardiyan:
     slot: 16
     material: NETHERITE_SWORD
-    display_name: "Gardiyan Kilici"
+    display_name: "&#00ffeeGardiyan Kılıcı"
     lore:
-      - "&8&#00e6b8&m          &8"
-      - " &#00e6b8&lYetenek &8| &7Lanet Demeti"
-      - " &7Dusmanlara &cMining Fatigue III&7 uygular."
-      - " &7Etki alani &e{radius}&7 blok yaricap."
+      - "&8&#00ffee&m               &8"
+      - " &#00ffee&lYetenek &8» &7Lanet Darbesi"
+      - " &7Düşmanlara &cMining Fatigue III"
+      - " &7etkisi uygular."
+      - " &7Etki Alanı: &e{radius} blok"
       - "&8"
-      - " &#00e6b8⏱ &7Bekleme: &e{cooldown} saniye"
-      - "&8&#00e6b8&m          &8"
-      - " &#00e6b8&l» &7Sag tikla yetenegi kullan!"
+      - " &#00ffee⏱ &7Bekleme Süresi: &e{cooldown} saniye"
+      - "&8&#00ffee&m               &8"
+      - " &#00ffee&l▶ &7Sağ tıkla yeteneği kullan!"
     cooldown: 60
     radius: 6
 
   wither:
     slot: 21
     material: NETHERITE_SWORD
-    display_name: "Wither Kilici"
+    display_name: "&#999999Wither Kılıcı"
     lore:
-      - "&8&#808080&m          &8"
-      - " &#808080&lYetenek &8| &7Karanlik Laneti"
-      - " &7Yakin dusmanlara &cWither II&7 etkisi uygular."
-      - " &7Etki alani &e{radius}&7 blok yaricap."
+      - "&8&#999999&m               &8"
+      - " &#999999&lYetenek &8» &7Karanlık Lanet"
+      - " &7Yakındaki düşmanlara"
+      - " &cWither II&7 etkisi verir."
+      - " &7Etki Alanı: &e{radius} blok"
       - "&8"
-      - " &#808080⏱ &7Bekleme: &e{cooldown} saniye"
-      - "&8&#808080&m          &8"
-      - " &#808080&l» &7Sag tikla yetenegi kullan!"
+      - " &#999999⏱ &7Bekleme Süresi: &e{cooldown} saniye"
+      - "&8&#999999&m               &8"
+      - " &#999999&l▶ &7Sağ tıkla yeteneği kullan!"
     cooldown: 30
     radius: 6
 
   enderman:
     slot: 23
     material: NETHERITE_SWORD
-    display_name: "Enderman Kilici"
+    display_name: "&#cc66ffEnderman Kılıcı"
     lore:
-      - "&8&#cc33ff&m          &8"
-      - " &#cc33ff&lYetenek &8| &7Karanlik Isinlama"
-      - " &7Dusmanlari &c5 blok yukari&7 isinlar."
-      - " &7Etki alani &e{radius}&7 blok yaricap."
+      - "&8&#cc66ff&m               &8"
+      - " &#cc66ff&lYetenek &8» &7Karanlık Işınlanma"
+      - " &7Düşmanları &c5 blok yukarı"
+      - " &7ışınlar."
+      - " &7Etki Alanı: &e{radius} blok"
       - "&8"
-      - " &#cc33ff⏱ &7Bekleme: &e{cooldown} saniye"
-      - "&8&#cc33ff&m          &8"
-      - " &#cc33ff&l» &7Sag tikla yetenegi kullan!"
+      - " &#cc66ff⏱ &7Bekleme Süresi: &e{cooldown} saniye"
+      - "&8&#cc66ff&m               &8"
+      - " &#cc66ff&l▶ &7Sağ tıkla yeteneği kullan!"
     cooldown: 30
     radius: 6
 
@@ -159,11 +167,12 @@ menu_bottom_items:
   left:
     slot: 46
     material: MUSIC_DISC_13
-    display_name: "Lera Raine - Creator"
+    display_name: "&#ff8844Lena Raine - Creator"
     lore:
-      - " &7Elytra'yi &c1.8 saniye&7 kilitler."
-      - " &#ff6600⏱ &7Bekleme: &e{cooldown} saniye"
-      - " &#ff6600&l» &7Sag tikla aktif et!"
+      - " &7Elytra kullanımını"
+      - " &c1.8 saniye&7 boyunca engeller."
+      - " &#ff8844⏱ &7Bekleme Süresi: &e{cooldown} saniye"
+      - " &#ff8844&l▶ &7Sağ tıkla aktif et!"
     vanish_seconds: 0
     cooldown: 80
     action: SELF_PHANTOM_LOCK
@@ -171,11 +180,12 @@ menu_bottom_items:
   center:
     slot: 49
     material: MUSIC_DISC_BLOCKS
-    display_name: "Aaron Cherof - Relic"
+    display_name: "&#44bbffAaron Cherof - Relic"
     lore:
-      - " &7Direnc + Hiz II &e3 saniye&7 aktif."
-      - " &#0099ff⏱ &7Bekleme: &e{cooldown} saniye"
-      - " &#0099ff&l» &7Sag tikla aktif et!"
+      - " &7Direnç ve &bHız II"
+      - " &73 saniye boyunca aktif olur."
+      - " &#44bbff⏱ &7Bekleme Süresi: &e{cooldown} saniye"
+      - " &#44bbff&l▶ &7Sağ tıkla aktif et!"
     vanish_seconds: 0
     cooldown: 60
     action: SELF_POWER_BOOST
@@ -183,25 +193,25 @@ menu_bottom_items:
   right:
     slot: 52
     material: MUSIC_DISC_CAT
-    display_name: "Lena Raine - Creator"
+    display_name: "&#55ff99Lena Raine - Creator"
     lore:
-      - " &72.5 saniye hasar almama aktif."
-      - " &#00ee66⏱ &7Bekleme: &e{cooldown} saniye"
-      - " &#00ee66&l» &7Sag tikla aktif et!"
+      - " &72.5 saniye boyunca"
+      - " &ahasar almazsın."
+      - " &#55ff99⏱ &7Bekleme Süresi: &e{cooldown} saniye"
+      - " &#55ff99&l▶ &7Sağ tıkla aktif et!"
     vanish_seconds: 0
     cooldown: 90
     action: SELF_INVINCIBILITY
 
 messages:
-  no_nearby_players: "&e[!] Yakinlarda oyuncu yok."
-  cooldown_message: "&#ff3300Tekrar kullanmadan once &#ffcc00{time} &#ff3300saniye bekleyin!"
-  ability_used: "&#00ff88» {ability} yetenegi kullanildi!"
-  elytra_broken: "&#ff0000&lElytra Bozuldu!"
+  no_nearby_players: "&#ffcc00[!] Yakında oyuncu bulunamadı."
+  cooldown_message: "&#ff4444Tekrar kullanmak için &e{time} saniye &ff4444beklemelisin!"
+  ability_used: "&#66ff99▶ &f{ability} yeteneği kullanıldı!"
+  elytra_broken: "&#ff0000&lElytra Devre Dışı!"
 
 flop_colors:
-  - "&#00ccff"
-  - "&#33ddff"
-  - "&#66eeff"
+  - "&#c0c0ff"
+  - "&#d9d9ff"
   - "&#ffffff"
-  - "&#66eeff"
-  - "&#33ddff"
+  - "&#d9d9ff"
+  - "&#c0c0ff"
