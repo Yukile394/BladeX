@@ -1,194 +1,180 @@
-```yaml
 # ============================================================
-#   BladeX - [Silvera] Özel Kiliclar & Iade Sistemi
-# ============================================================
-# Renk kodlari: &a &b &c &e &f &l &n &o ... (standart)
-# Hex renk:     &#RRGGBB seklinde kullanin
+#   BladeX - Fear Craft Ozel Kiliclar
 # ============================================================
 
-# ---- Genel Ayarlar ----
 prefix: "&#00ccff&lBladeX &8» &r"
 
-# ---- Kılıç Menü Ayarları ----
 menu:
-  title: "&#3b3b3bKılıç Menü"
+  title: "Kiliclar"
   size: 36
 
-# ---- Kılıçlar ----
 swords:
   shulker:
     slot: 10
-    display_name: "&#e8473e&lShulker Kılıcı"
+    material: NETHERITE_SWORD
+    display_name: "&#e8473e&lShulker Kilici"
     lore:
-      - "&7Yakındaki düşmanlara &cLevitation&7 uygular."
+      - "&7Yakinlardaki dusmanlara &cLevitation&7 uygular."
       - "&8Bekleme: &e{cooldown} saniye"
-      - "&8Etki: &e{radius} blok yarıçap"
+      - "&8Etki: &e{radius} blok yaricap"
       - ""
-      - "&#e8473e» &7Sağ tıkla yeteneği kullan!"
+      - "&#e8473e&l» &7Sag tikla yetenegi kullan!"
     cooldown: 30
     radius: 6
 
   creeper:
     slot: 11
-    display_name: "&#00e600&lCreeper Kılıcı"
+    material: NETHERITE_SWORD
+    display_name: "&#00e600&lCreeper Kilici"
     lore:
-      - "&7Patlama dalgasıyla düşmanları &cfırlatır&7."
-      - "&7Ayrıca &c6 hasar&7 verir."
+      - "&7Patlama dalgasiyla dusmanlari &cfirlatir&7."
+      - "&7Ayrica &c6 hasar&7 verir."
       - "&8Bekleme: &e{cooldown} saniye"
-      - "&8Etki: &e{radius} blok yarıçap"
+      - "&8Etki: &e{radius} blok yaricap"
       - ""
-      - "&#00e600» &7Sağ tıkla yeteneği kullan!"
+      - "&#00e600&l» &7Sag tikla yetenegi kullan!"
     cooldown: 25
     radius: 6
 
   orumcek:
     slot: 12
-    display_name: "&#bd0000&lÖrümcek Kılıcı"
+    material: NETHERITE_SWORD
+    display_name: "&#bd0000&lOrumcek Kilici"
     lore:
-      - "&7Düşmanların üstüne &cörümcek ağı&7 atar."
-      - "&7Ağ &e3.5 saniye&7 sonra kaybolur."
+      - "&7Dusmanlarin ustune &cag&7 atar."
+      - "&7Ag &e3.5 saniye&7 sonra kaybolur."
       - "&8Bekleme: &e{cooldown} saniye"
-      - "&8Etki: &e{radius} blok yarıçap"
+      - "&8Etki: &e{radius} blok yaricap"
       - ""
-      - "&#bd0000» &7Sağ tıkla yeteneği kullan!"
+      - "&#bd0000&l» &7Sag tikla yetenegi kullan!"
     cooldown: 60
     radius: 6
 
   phantom:
     slot: 13
-    display_name: "&#0080ff&lPhantom Kılıcı"
+    material: NETHERITE_SWORD
+    display_name: "&#0080ff&lPhantom Kilici"
     lore:
-      - "&7Düşmanların &cElytra'sını bozar."
-      - "&7Elytra &e4 saniye&7 boyunca çalışmaz."
+      - "&7Dusmanlarin &cElytra'sini bozar."
+      - "&7Elytra &e4 saniye&7 boyunca calismaz."
       - "&8Bekleme: &e{cooldown} saniye"
-      - "&8Etki: &e{radius} blok yarıçap"
+      - "&8Etki: &e{radius} blok yaricap"
       - ""
-      - "&#0080ff» &7Sağ tıkla yeteneği kullan!"
+      - "&#0080ff&l» &7Sag tikla yetenegi kullan!"
     cooldown: 65
     radius: 6
 
   yildirim:
     slot: 14
-    display_name: "&#ffee00&lYıldırım Kılıcı"
+    material: NETHERITE_SWORD
+    display_name: "&#ffee00&lYildirim Kilici"
     lore:
-      - "&7Yakındaki düşmanlara &cşimşek&7 çarptırır."
+      - "&7Yakinlardaki dusmanlara &csimek&7 carptir."
       - "&8Bekleme: &e{cooldown} saniye"
-      - "&8Etki: &e{radius} blok yarıçap"
+      - "&8Etki: &e{radius} blok yaricap"
       - ""
-      - "&#ffee00» &7Sağ tıkla yeteneği kullan!"
+      - "&#ffee00&l» &7Sag tikla yetenegi kullan!"
     cooldown: 30
     radius: 6
 
   ejderha:
     slot: 15
-    display_name: "&#ffaa00&lEjderha Kılıcı"
+    material: NETHERITE_SWORD
+    display_name: "&#ffaa00&lEjderha Kilici"
     lore:
-      - "&7Ateşe verir ve &cWither II&7 etkisi yapar."
-      - "&7Ejderha nefesi partikülleri yayar."
+      - "&7Atese verir ve &cWither II&7 etkisi yapar."
       - "&8Bekleme: &e{cooldown} saniye"
-      - "&8Etki: &e{radius} blok yarıçap"
+      - "&8Etki: &e{radius} blok yaricap"
       - ""
-      - "&#ffaa00» &7Sağ tıkla yeteneği kullan!"
+      - "&#ffaa00&l» &7Sag tikla yetenegi kullan!"
     cooldown: 30
     radius: 6
 
   gardiyan:
     slot: 16
-    display_name: "&#00e6b8&lGardiyan Kılıcı"
+    material: NETHERITE_SWORD
+    display_name: "&#00e6b8&lGardiyan Kilici"
     lore:
-      - "&7Düşmanlara &cMining Fatigue III&7 uygular."
-      - "&7Enerji demeti partikülleri çıkar."
+      - "&7Dusmanlara &cMining Fatigue III&7 uygular."
       - "&8Bekleme: &e{cooldown} saniye"
-      - "&8Etki: &e{radius} blok yarıçap"
+      - "&8Etki: &e{radius} blok yaricap"
       - ""
-      - "&#00e6b8» &7Sağ tıkla yeteneği kullan!"
+      - "&#00e6b8&l» &7Sag tikla yetenegi kullan!"
     cooldown: 60
     radius: 6
 
   wither:
     slot: 21
-    display_name: "&#404040&lWither Kılıcı"
+    material: NETHERITE_SWORD
+    display_name: "&#808080&lWither Kilici"
     lore:
-      - "&7Yakındaki düşmanlara &cWither II&7 etkisi uygular."
-      - "&7Karanlık partiküller yayar."
+      - "&7Yakinlardaki dusmanlara &cWither II&7 etkisi uygular."
       - "&8Bekleme: &e{cooldown} saniye"
-      - "&8Etki: &e{radius} blok yarıçap"
+      - "&8Etki: &e{radius} blok yaricap"
       - ""
-      - "&#404040» &7Sağ tıkla yeteneği kullan!"
+      - "&#808080&l» &7Sag tikla yetenegi kullan!"
     cooldown: 30
     radius: 6
 
   enderman:
     slot: 23
-    display_name: "&#cc33ff&lEnderman Kılıcı"
+    material: NETHERITE_SWORD
+    display_name: "&#cc33ff&lEnderman Kilici"
     lore:
-      - "&7Düşmanları &c5 blok yukarı&7 ışınlar."
-      - "&7Portal partikülleri çıkar."
+      - "&7Dusmanlari &c5 blok yukari&7 isinlar."
       - "&8Bekleme: &e{cooldown} saniye"
-      - "&8Etki: &e{radius} blok yarıçap"
+      - "&8Etki: &e{radius} blok yaricap"
       - ""
-      - "&#cc33ff» &7Sağ tıkla yeteneği kullan!"
+      - "&#cc33ff&l» &7Sag tikla yetenegi kullan!"
     cooldown: 30
     radius: 6
 
-# ---- Menü Alt 3 Item — Müzik Diskleri ----
 menu_bottom_items:
 
   left:
     slot: 28
-    material: MUSIC_DISC_RELIC
+    material: ENDER_EYE
     display_name: "&#0080ff&lAaron Cherof - Relic"
     lore:
-      - "&7Sağ tıklayınca &cPhantom gibi&7 elytra'nı kilitler."
-      - "&7Elytra &e4 saniye&7 boyunca çalışmaz."
+      - "&7Sag tiklarsan elytra'ni &c4 saniye&7 kilitler."
       - ""
       - "&8Bekleme: &e80 saniye"
-      - "&#0080ff» &7Sağ tıkla aktif et!"
+      - "&#0080ff&l» &7Sag tikla aktif et!"
     cooldown: 80
     action: SELF_PHANTOM_LOCK
 
   center:
     slot: 31
-    material: MUSIC_DISC_CREATOR
+    material: NETHER_STAR
     display_name: "&#ffdd00&lLena Raine - Creator"
     lore:
-      - "&7Sağ tıklayınca &e30 saniye&7 boyunca"
-      - "&cHız II + Direnç + Güç I&7 etkisi alırsın."
+      - "&7Hiz II + Direnc + Guc I"
+      - "&730 saniye boyunca aktif olur."
       - ""
       - "&8Bekleme: &e60 saniye"
-      - "&#ffdd00» &7Sağ tıkla aktif et!"
+      - "&#ffdd00&l» &7Sag tikla aktif et!"
     cooldown: 60
     action: SELF_POWER_BOOST
 
   right:
     slot: 34
-    material: MUSIC_DISC_CREATOR_MUSIC_BOX
+    material: TOTEM_OF_UNDYING
     display_name: "&#ff6600&lLera Raine - Creator"
     lore:
-      - "&7Sağ tıklayınca &e2.5 saniye&7 boyunca"
-      - "&cHasar almama&7 etkisi aktif olur."
+      - "&72.5 saniye boyunca"
+      - "&chasar almama&7 etkisi aktif olur."
       - ""
       - "&8Bekleme: &e90 saniye"
-      - "&#ff6600» &7Sağ tıkla aktif et!"
+      - "&#ff6600&l» &7Sag tikla aktif et!"
     cooldown: 90
     action: SELF_INVINCIBILITY
 
-# ---- İade Menü Ayarları ----
-iade_menu:
-  title: "Fear Craft - İade"
-  size: 54
-
-# ---- Mesajlar ----
 messages:
-  no_nearby_players: "&e[!] Yakınlarda oyuncu yok, yetenek harcanmadı."
-  cooldown_message: "&#ff3300Tekrar kullanmadan önce &#ffcc00{time} &#ff3300saniye bekleyin!"
-  ability_used: "&#00ff88» {ability} yeteneği kullanıldı!"
+  no_nearby_players: "&e[!] Yakinlarda oyuncu yok."
+  cooldown_message: "&#ff3300Tekrar kullanmadan once &#ffcc00{time} &#ff3300saniye bekleyin!"
+  ability_used: "&#00ff88» {ability} yetenegi kullanildi!"
   elytra_broken: "&#ff0000&lElytra Bozuldu!"
-  power_boost_active: "&#ffdd00&l⭐ Güç Yıldızı aktif! 30 saniye."
-  invincibility_active: "&#ff6600&l🛡 Yenilmezlik aktif! 2.5 saniye."
-  items_returned: "&aEşyalar @{player} kişisine verildi."
 
-# ---- Flop (animasyonlu başlık) Renkleri ----
 flop_colors:
   - "&#00ccff"
   - "&#33ffff"
@@ -196,4 +182,3 @@ flop_colors:
   - "&#ffffff"
   - "&#66ffff"
   - "&#33ffff"
-```
