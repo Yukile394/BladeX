@@ -83,7 +83,7 @@ public class BladeX extends JavaPlugin implements Listener {
             }
             case "bladexreload" -> {
                 reloadConfig();
-                p.sendMessage(color(cfg("prefix") + "&aConfig yeniden yuklendi!"));
+                p.sendMessage(color(cfg("prefix") + "&aBladeX Reload Atıldı!"));
             }
         }
         return true;
@@ -137,7 +137,7 @@ public class BladeX extends JavaPlugin implements Listener {
         lore.add(color("&7Her kilicin benzersiz bir yetenegi var."));
         lore.add(color("&7Sag tikla yetenegi kullan, bekleme suresi dolar."));
         lore.add(color("&8"));
-        lore.add(color("&#ff3333Guvenli bolgede kılic yetenekleri calismaz. - Silvera"));
+        lore.add(color("&#ff3333Guvenli bölgede kılıç yetenekleri çalışmaz. [Silvera]"));
         meta.setLore(lore);
         item.setItemMeta(meta);
         return item;
@@ -299,7 +299,7 @@ public class BladeX extends JavaPlugin implements Listener {
 
         // WorldGuard bolge kontrolu — sadece kilic yetenekleri icin
         if (worldGuardEnabled && isInProtectedRegion(p)) {
-            p.sendMessage(color("&#ff3333Guvenli bolgede kılic ozelliklerini kullanamazsin. - Silvera"));
+            p.sendMessage(color("&#ff3333Güvenli bölgede kılıç özelliklerini kullanamazsın."));
             return;
         }
 
