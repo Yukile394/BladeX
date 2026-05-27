@@ -5,162 +5,190 @@
 prefix: "&#00ccff&lBladeX &8» &r"
 
 menu:
-  title: "Kiliclar"
-  size: 36
+  title: "Kılıçlar"
+  size: 54
 
 swords:
   shulker:
     slot: 10
     material: NETHERITE_SWORD
-    display_name: "&#e8473e&lShulker Kilici"
+    display_name: "Shulker Kilici"
     lore:
-      - "&7Yakinlardaki dusmanlara &cLevitation&7 uygular."
-      - "&8Bekleme: &e{cooldown} saniye"
-      - "&8Etki: &e{radius} blok yaricap"
-      - ""
-      - "&#e8473e&l» &7Sag tikla yetenegi kullan!"
+      - "&8&#e8473e&m          &8"
+      - " &#e8473e&lYetenek &8| &7Levitation Dalgasi"
+      - " &7Yakin dusmanlara yukari firlatma etkisi."
+      - " &7Etki alani &e{radius}&7 blok yaricap."
+      - "&8"
+      - " &#e8473e⏱ &7Bekleme: &e{cooldown} saniye"
+      - "&8&#e8473e&m          &8"
+      - " &#e8473e&l» &7Sag tikla yetenegi kullan!"
     cooldown: 30
     radius: 6
 
   creeper:
     slot: 11
     material: NETHERITE_SWORD
-    display_name: "&#00e600&lCreeper Kilici"
+    display_name: "Creeper Kilici"
     lore:
-      - "&7Patlama dalgasiyla dusmanlari &cfirlatir&7."
-      - "&7Ayrica &c6 hasar&7 verir."
-      - "&8Bekleme: &e{cooldown} saniye"
-      - "&8Etki: &e{radius} blok yaricap"
-      - ""
-      - "&#00e600&l» &7Sag tikla yetenegi kullan!"
+      - "&8&#00e600&m          &8"
+      - " &#00e600&lYetenek &8| &7Patlama Dalgasi"
+      - " &7Dusmanlari geri firlatir ve &c6 hasar&7 verir."
+      - " &7Etki alani &e{radius}&7 blok yaricap."
+      - "&8"
+      - " &#00e600⏱ &7Bekleme: &e{cooldown} saniye"
+      - "&8&#00e600&m          &8"
+      - " &#00e600&l» &7Sag tikla yetenegi kullan!"
     cooldown: 25
     radius: 6
 
   orumcek:
     slot: 12
     material: NETHERITE_SWORD
-    display_name: "&#bd0000&lOrumcek Kilici"
+    display_name: "Orumcek Kilici"
     lore:
-      - "&7Dusmanlarin ustune &cag&7 atar."
-      - "&7Ag &e3.5 saniye&7 sonra kaybolur."
-      - "&8Bekleme: &e{cooldown} saniye"
-      - "&8Etki: &e{radius} blok yaricap"
-      - ""
-      - "&#bd0000&l» &7Sag tikla yetenegi kullan!"
+      - "&8&#bd0000&m          &8"
+      - " &#bd0000&lYetenek &8| &7Ag Tuzagi"
+      - " &7Dusmanlarin ayagina &cOrumcek Agi&7 atar."
+      - " &7Ag &e3.5 saniye&7 sonra kaybolur."
+      - " &7Etki alani &e{radius}&7 blok yaricap."
+      - "&8"
+      - " &#bd0000⏱ &7Bekleme: &e{cooldown} saniye"
+      - "&8&#bd0000&m          &8"
+      - " &#bd0000&l» &7Sag tikla yetenegi kullan!"
     cooldown: 60
     radius: 6
 
   phantom:
     slot: 13
     material: NETHERITE_SWORD
-    display_name: "&#0080ff&lPhantom Kilici"
+    display_name: "Phantom Kilici"
     lore:
-      - "&7Dusmanlarin &cElytra'sini bozar."
-      - "&7Elytra &e4 saniye&7 boyunca calismaz."
-      - "&8Bekleme: &e{cooldown} saniye"
-      - "&8Etki: &e{radius} blok yaricap"
-      - ""
-      - "&#0080ff&l» &7Sag tikla yetenegi kullan!"
+      - "&8&#0080ff&m          &8"
+      - " &#0080ff&lYetenek &8| &7Elytra Bozucu"
+      - " &7Dusmanlarin Elytra'sini &e3 saniye&7 kilitler."
+      - " &7Etki alani &e{radius}&7 blok yaricap."
+      - "&8"
+      - " &#0080ff⏱ &7Bekleme: &e{cooldown} saniye"
+      - "&8&#0080ff&m          &8"
+      - " &#0080ff&l» &7Sag tikla yetenegi kullan!"
     cooldown: 65
     radius: 6
 
   yildirim:
     slot: 14
     material: NETHERITE_SWORD
-    display_name: "&#ffee00&lYildirim Kilici"
+    display_name: "Yildirim Kilici"
     lore:
-      - "&7Yakinlardaki dusmanlara &csimek&7 carptir."
-      - "&8Bekleme: &e{cooldown} saniye"
-      - "&8Etki: &e{radius} blok yaricap"
-      - ""
-      - "&#ffee00&l» &7Sag tikla yetenegi kullan!"
+      - "&8&#ffee00&m          &8"
+      - " &#ffee00&lYetenek &8| &7Yildirim Cagrisi"
+      - " &7Yakin dusmanlara &cyildirim&7 carptir."
+      - " &7Etki alani &e{radius}&7 blok yaricap."
+      - "&8"
+      - " &#ffee00⏱ &7Bekleme: &e{cooldown} saniye"
+      - "&8&#ffee00&m          &8"
+      - " &#ffee00&l» &7Sag tikla yetenegi kullan!"
     cooldown: 30
     radius: 6
 
   ejderha:
     slot: 15
     material: NETHERITE_SWORD
-    display_name: "&#ffaa00&lEjderha Kilici"
+    display_name: "Ejderha Kilici"
     lore:
-      - "&7Atese verir ve &cWither II&7 etkisi yapar."
-      - "&8Bekleme: &e{cooldown} saniye"
-      - "&8Etki: &e{radius} blok yaricap"
-      - ""
-      - "&#ffaa00&l» &7Sag tikla yetenegi kullan!"
+      - "&8&#ffaa00&m          &8"
+      - " &#ffaa00&lYetenek &8| &7Ejderha Nefesi"
+      - " &7Dusmanlari &cAtese&7 verir ve &cWither II&7 yapar."
+      - " &7Etki alani &e{radius}&7 blok yaricap."
+      - "&8"
+      - " &#ffaa00⏱ &7Bekleme: &e{cooldown} saniye"
+      - "&8&#ffaa00&m          &8"
+      - " &#ffaa00&l» &7Sag tikla yetenegi kullan!"
     cooldown: 30
     radius: 6
 
   gardiyan:
     slot: 16
     material: NETHERITE_SWORD
-    display_name: "&#00e6b8&lGardiyan Kilici"
+    display_name: "Gardiyan Kilici"
     lore:
-      - "&7Dusmanlara &cMining Fatigue III&7 uygular."
-      - "&8Bekleme: &e{cooldown} saniye"
-      - "&8Etki: &e{radius} blok yaricap"
-      - ""
-      - "&#00e6b8&l» &7Sag tikla yetenegi kullan!"
+      - "&8&#00e6b8&m          &8"
+      - " &#00e6b8&lYetenek &8| &7Lanet Demeti"
+      - " &7Dusmanlara &cMining Fatigue III&7 uygular."
+      - " &7Etki alani &e{radius}&7 blok yaricap."
+      - "&8"
+      - " &#00e6b8⏱ &7Bekleme: &e{cooldown} saniye"
+      - "&8&#00e6b8&m          &8"
+      - " &#00e6b8&l» &7Sag tikla yetenegi kullan!"
     cooldown: 60
     radius: 6
 
   wither:
     slot: 21
     material: NETHERITE_SWORD
-    display_name: "&#808080&lWither Kilici"
+    display_name: "Wither Kilici"
     lore:
-      - "&7Yakinlardaki dusmanlara &cWither II&7 etkisi uygular."
-      - "&8Bekleme: &e{cooldown} saniye"
-      - "&8Etki: &e{radius} blok yaricap"
-      - ""
-      - "&#808080&l» &7Sag tikla yetenegi kullan!"
+      - "&8&#808080&m          &8"
+      - " &#808080&lYetenek &8| &7Karanlik Laneti"
+      - " &7Yakin dusmanlara &cWither II&7 etkisi uygular."
+      - " &7Etki alani &e{radius}&7 blok yaricap."
+      - "&8"
+      - " &#808080⏱ &7Bekleme: &e{cooldown} saniye"
+      - "&8&#808080&m          &8"
+      - " &#808080&l» &7Sag tikla yetenegi kullan!"
     cooldown: 30
     radius: 6
 
   enderman:
     slot: 23
     material: NETHERITE_SWORD
-    display_name: "&#cc33ff&lEnderman Kilici"
+    display_name: "Enderman Kilici"
     lore:
-      - "&7Dusmanlari &c5 blok yukari&7 isinlar."
-      - "&8Bekleme: &e{cooldown} saniye"
-      - "&8Etki: &e{radius} blok yaricap"
-      - ""
-      - "&#cc33ff&l» &7Sag tikla yetenegi kullan!"
+      - "&8&#cc33ff&m          &8"
+      - " &#cc33ff&lYetenek &8| &7Karanlik Isinlama"
+      - " &7Dusmanlari &c5 blok yukari&7 isinlar."
+      - " &7Etki alani &e{radius}&7 blok yaricap."
+      - "&8"
+      - " &#cc33ff⏱ &7Bekleme: &e{cooldown} saniye"
+      - "&8&#cc33ff&m          &8"
+      - " &#cc33ff&l» &7Sag tikla yetenegi kullan!"
     cooldown: 30
     radius: 6
 
 menu_bottom_items:
 
   left:
-    slot: 28
+    slot: 46
     material: MUSIC_DISC_13
-    display_name: "&#ff6600&lLera Raine - Creator"
+    display_name: "Lera Raine - Creator"
     lore:
-      - "&7Elytra'yi &c4 saniye&7 kilitler."
-      - "&8Bekleme: &e{cooldown} saniye"
-      - "&#ff6600&l» &7Sag tikla aktif et!"
+      - " &7Elytra'yi &c1.8 saniye&7 kilitler."
+      - " &#ff6600⏱ &7Bekleme: &e{cooldown} saniye"
+      - " &#ff6600&l» &7Sag tikla aktif et!"
+    vanish_seconds: 0
     cooldown: 80
     action: SELF_PHANTOM_LOCK
 
   center:
-    slot: 31
+    slot: 49
     material: MUSIC_DISC_BLOCKS
-    display_name: "&#0080ff&lAaron Cherof - Relic"
+    display_name: "Aaron Cherof - Relic"
     lore:
-      - "&7Direnc + Hiz II &e3 saniye&7 aktif."
-      - "&8Bekleme: &e{cooldown} saniye"
-      - "&#0080ff&l» &7Sag tikla aktif et!"
+      - " &7Direnc + Hiz II &e3 saniye&7 aktif."
+      - " &#0099ff⏱ &7Bekleme: &e{cooldown} saniye"
+      - " &#0099ff&l» &7Sag tikla aktif et!"
+    vanish_seconds: 0
     cooldown: 60
     action: SELF_POWER_BOOST
 
   right:
-    slot: 34
+    slot: 52
     material: MUSIC_DISC_CAT
-    display_name: "&#ffdd00&lLena Raine - Creator"
+    display_name: "Lena Raine - Creator"
     lore:
-      - "&72.5 saniye hasar almama aktif."
-      - "&8Bekleme: &e{cooldown} saniye"
-      - "&#ffdd00&l» &7Sag tikla aktif et!"
+      - " &72.5 saniye hasar almama aktif."
+      - " &#00ee66⏱ &7Bekleme: &e{cooldown} saniye"
+      - " &#00ee66&l» &7Sag tikla aktif et!"
+    vanish_seconds: 0
     cooldown: 90
     action: SELF_INVINCIBILITY
 
@@ -172,8 +200,8 @@ messages:
 
 flop_colors:
   - "&#00ccff"
-  - "&#33ffff"
-  - "&#66ffff"
+  - "&#33ddff"
+  - "&#66eeff"
   - "&#ffffff"
-  - "&#66ffff"
-  - "&#33ffff"
+  - "&#66eeff"
+  - "&#33ddff"
