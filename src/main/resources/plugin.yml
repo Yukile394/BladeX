@@ -1,29 +1,23 @@
 name: BladeX
-version: '${version}'
+version: '1.0'
 main: com.bladex.BladeX
 api-version: '1.21'
-description: "Fear Craft ozel kiliclar & iade sistemi"
-authors: [ FearCraft ]
+authors: [ Yukile ]
 
 commands:
   kilicvermenu:
-    description: "Kılıç menüsünü acar (Admin)"
+    description: Kiliclar menusu
     usage: /kilicvermenu
     permission: bladex.admin
-  iade:
-    description: "Iade menüsünü acar (Admin)"
-    usage: /iade
-    permission: bladex.admin
   bladex:
-    description: "BladeX ana komut (reload için)"
+    description: BladeX komutlari
     usage: /bladex <reload>
     permission: bladex.admin
   bladexreload:
-    description: "Config'i yeniden yukler"
+    description: Config yeniden yukle
     usage: /bladexreload
     permission: bladex.admin
 
 permissions:
   bladex.admin:
-    description: "BladeX admin komutlarina erisim"
     default: op
