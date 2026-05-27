@@ -133,39 +133,34 @@ menu_bottom_items:
 
   left:
     slot: 28
-    material: ENDER_EYE
-    display_name: "&#0080ff&lAaron Cherof - Relic"
+    material: MUSIC_DISC_13
+    display_name: "&#ff6600&lLera Raine - Creator"
     lore:
-      - "&7Sag tiklarsan elytra'ni &c4 saniye&7 kilitler."
-      - ""
-      - "&8Bekleme: &e80 saniye"
-      - "&#0080ff&l» &7Sag tikla aktif et!"
+      - "&7Elytra'yi &c4 saniye&7 kilitler."
+      - "&8Bekleme: &e{cooldown} saniye"
+      - "&#ff6600&l» &7Sag tikla aktif et!"
     cooldown: 80
     action: SELF_PHANTOM_LOCK
 
   center:
     slot: 31
-    material: NETHER_STAR
-    display_name: "&#ffdd00&lLena Raine - Creator"
+    material: MUSIC_DISC_BLOCKS
+    display_name: "&#0080ff&lAaron Cherof - Relic"
     lore:
-      - "&7Hiz II + Direnc + Guc I"
-      - "&730 saniye boyunca aktif olur."
-      - ""
-      - "&8Bekleme: &e60 saniye"
-      - "&#ffdd00&l» &7Sag tikla aktif et!"
+      - "&7Direnc + Hiz II &e3 saniye&7 aktif."
+      - "&8Bekleme: &e{cooldown} saniye"
+      - "&#0080ff&l» &7Sag tikla aktif et!"
     cooldown: 60
     action: SELF_POWER_BOOST
 
   right:
     slot: 34
-    material: TOTEM_OF_UNDYING
-    display_name: "&#ff6600&lLera Raine - Creator"
+    material: MUSIC_DISC_CAT
+    display_name: "&#ffdd00&lLena Raine - Creator"
     lore:
-      - "&72.5 saniye boyunca"
-      - "&chasar almama&7 etkisi aktif olur."
-      - ""
-      - "&8Bekleme: &e90 saniye"
-      - "&#ff6600&l» &7Sag tikla aktif et!"
+      - "&72.5 saniye hasar almama aktif."
+      - "&8Bekleme: &e{cooldown} saniye"
+      - "&#ffdd00&l» &7Sag tikla aktif et!"
     cooldown: 90
     action: SELF_INVINCIBILITY
 
