@@ -167,7 +167,7 @@ menu_bottom_items:
   left:
     slot: 46
     material: MUSIC_DISC_13
-    display_name: "&#ff8844Lena Raine - Creator"
+    display_name: "&#ff8844Silvera"
     lore:
       - " &7Elytra kullanımını"
       - " &c1.8 saniye&7 boyunca engeller."
@@ -180,7 +180,7 @@ menu_bottom_items:
   center:
     slot: 49
     material: MUSIC_DISC_BLOCKS
-    display_name: "&#44bbffAaron Cherof - Relic"
+    display_name: "&#44bbffSilvera"
     lore:
       - " &7Direnç ve &bHız II"
       - " &73 saniye boyunca aktif olur."
@@ -193,7 +193,7 @@ menu_bottom_items:
   right:
     slot: 52
     material: MUSIC_DISC_CAT
-    display_name: "&#55ff99Lena Raine - Creator"
+    display_name: "&#55ff99Silvera"
     lore:
       - " &72.5 saniye boyunca"
       - " &ahasar almazsın."
@@ -204,10 +204,10 @@ menu_bottom_items:
     action: SELF_INVINCIBILITY
 
 messages:
-  no_nearby_players: "&#ffcc00[!] Yakında oyuncu bulunamadı."
-  cooldown_message: "&#ff4444Tekrar kullanmak için &e{time} saniye &ff4444beklemelisin!"
-  ability_used: "&#66ff99▶ &f{ability} yeteneği kullanıldı!"
-  elytra_broken: "&#ff0000&lElytra Devre Dışı!"
+  no_nearby_players: "&e[!] &7Yakında oyuncu bulunamadı."
+  cooldown_message: "&cTekrar kullanmak için &e{time} saniye &cbeklemelisin!"
+  ability_used: "&a▶ &f{ability} yeteneği kullanıldı!"
+  elytra_broken: "&cElytra Devre Dışı!"
 
 flop_colors:
   - "&#c0c0ff"
