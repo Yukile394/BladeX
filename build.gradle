@@ -5,7 +5,7 @@ plugins {
 
 group = 'com.bladex'
 version = '1.0.0'
-description = 'BladeX - Fear Craft Ozel Kiliclar'
+description = 'BladeX - Silvera Ozel Kiliclar'
 
 java {
     toolchain {
@@ -15,10 +15,13 @@ java {
 
 repositories {
     maven { url 'https://repo.papermc.io/repository/maven-public/' }
+    maven { url 'https://maven.enginehub.org/repo/' }
 }
 
 dependencies {
     compileOnly 'io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT'
+    compileOnly 'com.sk89q.worldguard:worldguard-bukkit:7.0.12'
+    compileOnly 'com.sk89q.worldedit:worldedit-bukkit:7.3.10'
 }
 
 processResources {
