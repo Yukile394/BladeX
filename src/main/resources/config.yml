@@ -51,7 +51,7 @@ swords:
       - "&8&#ff4444&m               &8"
       - " &#ff4444&lYetenek &8» &7Ağ Tuzağı"
       - " &7Düşmanların ayağına örümcek ağı bırakır."
-      - " &7Ağlar &e3.5 saniye&7 sonra kaybolur."
+      - " &7Ağlar &e2.9 saniye&7 sonra kaybolur."
       - " &7Etki Alanı: &e{radius} blok"
       - "&8"
       - " &#ff4444⏱ &7Bekleme Süresi: &e{cooldown} saniye"
@@ -129,7 +129,7 @@ swords:
     radius: 6
 
   wither:
-    slot: 21
+    slot: 30
     material: NETHERITE_SWORD
     display_name: "&#999999Wither Kılıcı"
     lore:
@@ -146,62 +146,21 @@ swords:
     radius: 6
 
   enderman:
-    slot: 23
+    slot: 32
     material: NETHERITE_SWORD
     display_name: "&#cc66ffEnderman Kılıcı"
     lore:
       - "&8&#cc66ff&m               &8"
-      - " &#cc66ff&lYetenek &8» &7Karanlık Işınlanma"
-      - " &7Düşmanları &c5 blok yukarı"
-      - " &7ışınlar."
-      - " &7Etki Alanı: &e{radius} blok"
+      - " &#cc66ff&lYetenek &8» &7İleriye Işınlanma"
+      - " &7Baktığın yönde &e2.5 blok"
+      - " &7ileriye ışınlanırsın."
+      - " &7Sadece hava, odun ve ağ bloklarına!"
       - "&8"
       - " &#cc66ff⏱ &7Bekleme Süresi: &e{cooldown} saniye"
       - "&8&#cc66ff&m               &8"
       - " &#cc66ff&l▶ &7Sağ tıkla yeteneği kullan!"
     cooldown: 30
     radius: 6
-
-menu_bottom_items:
-
-  left:
-    slot: 46
-    material: MUSIC_DISC_13
-    display_name: "&#ff8844Silvera"
-    lore:
-      - " &7Elytra kullanımını"
-      - " &c1.8 saniye&7 boyunca engeller."
-      - " &#ff8844⏱ &7Bekleme Süresi: &e{cooldown} saniye"
-      - " &#ff8844&l▶ &7Sağ tıkla aktif et!"
-    vanish_seconds: 0
-    cooldown: 80
-    action: SELF_PHANTOM_LOCK
-
-  center:
-    slot: 49
-    material: MUSIC_DISC_BLOCKS
-    display_name: "&#44bbffSilvera"
-    lore:
-      - " &7Direnç ve &bHız II"
-      - " &73 saniye boyunca aktif olur."
-      - " &#44bbff⏱ &7Bekleme Süresi: &e{cooldown} saniye"
-      - " &#44bbff&l▶ &7Sağ tıkla aktif et!"
-    vanish_seconds: 0
-    cooldown: 60
-    action: SELF_POWER_BOOST
-
-  right:
-    slot: 52
-    material: MUSIC_DISC_CAT
-    display_name: "&#55ff99Silvera"
-    lore:
-      - " &72.5 saniye boyunca"
-      - " &ahasar almazsın."
-      - " &#55ff99⏱ &7Bekleme Süresi: &e{cooldown} saniye"
-      - " &#55ff99&l▶ &7Sağ tıkla aktif et!"
-    vanish_seconds: 0
-    cooldown: 90
-    action: SELF_INVINCIBILITY
 
 messages:
   no_nearby_players: "&e[!] &7Yakında oyuncu bulunamadı."
