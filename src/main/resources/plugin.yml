@@ -1,21 +1,20 @@
 name: BladeX
-version: '1.0'
+version: '2.0'
 main: com.bladex.BladeX
 api-version: '1.21'
 authors: [ Yukile ]
+description: Login & Register Sistemi
 
 commands:
-  kilicvermenu:
-    description: Kiliclar menusu
-    usage: /kilicvermenu
-    permission: bladex.admin
-  bladex:
-    description: BladeX komutlari
-    usage: /bladex <reload>
-    permission: bladex.admin
-  bladexreload:
-    description: Config yeniden yukle
-    usage: /bladexreload
+  register:
+    description: Kayit ol
+    usage: /register <sifre> <sifre tekrar>
+  login:
+    description: Giris yap
+    usage: /login <sifren>
+  logingoster:
+    description: Tum kayitli oyunculari goster
+    usage: /logingoster
     permission: bladex.admin
 
 permissions:
