@@ -3,20 +3,9 @@ version: '2.0'
 main: com.bladex.BladeX
 api-version: '1.21'
 authors: [ Yukile ]
-description: Login & Register Sistemi
+description: BladeX
 
 commands:
-  register:
-    description: Kayit ol
-    usage: /register <sifre> <sifre tekrar>
-  login:
-    description: Giris yap
-    usage: /login <sifren>
-  logingoster:
-    description: Tum kayitli oyunculari goster
-    usage: /logingoster
-    permission: bladex.admin
-
-permissions:
-  bladex.admin:
-    default: op
+  kilicvermenu:
+    description: Kılıç verme menüsünü açar.
+    usage: /kilicvermenu
