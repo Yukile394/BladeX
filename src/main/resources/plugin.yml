@@ -9,3 +9,21 @@ commands:
   kilicvermenu:
     description: Kılıç verme menüsünü açar.
     usage: /kilicvermenu
+
+  unbreakable:
+    description: Elde tutulan menü kılıcını kırılmaz yapar/kaldırır.
+    permission: bladex.admin
+
+  keskinlikver:
+    description: Elde tutulan menü kılıcına Keskinlik büyüsü basar.
+    usage: /keskinlikver <seviye>
+    permission: bladex.admin
+
+  alevdencehre:
+    description: Elde tutulan menü kılıcına Alev Cehresi büyüsü basar.
+    usage: /alevdencehre <seviye>
+    permission: bladex.admin
+
+permissions:
+  bladex.admin:
+    default: op
