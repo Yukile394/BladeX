@@ -10,6 +10,16 @@ commands:
     description: Kılıç verme menüsünü açar.
     usage: /kilicvermenu
 
+  bladex:
+    description: BladeX ana komutu (reload).
+    usage: /bladex reload
+    permission: bladex.admin
+
+  bladexreload:
+    description: BladeX config dosyasını yeniden yükler.
+    usage: /bladexreload
+    permission: bladex.admin
+
   unbreakable:
     description: Elde tutulan menü kılıcını kırılmaz yapar/kaldırır.
     permission: bladex.admin
