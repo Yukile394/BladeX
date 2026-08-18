@@ -68,7 +68,7 @@ swords:
       - "&8&#66ccff&m               &8"
       - " &#66ccff&lYetenek &8» &7Elytra Kilidi"
       - " &7Yakındaki oyuncuların"
-      - " &7Elytra kullanımını &e3 saniye&7 engeller."
+      - " &7Elytra kullanımını &e2 saniye&7 engeller."
       - " &7Etki Alanı: &e{radius} blok"
       - "&8"
       - " &#66ccff⏱ &7Bekleme Süresi: &e{cooldown} saniye"
@@ -161,6 +161,57 @@ swords:
       - " &#cc66ff&l▶ &7Sağ tıkla yeteneği kullan!"
     cooldown: 30
     radius: 6
+
+  evoker:
+    slot: 28
+    material: NETHERITE_SWORD
+    display_name: "&#7a2fbfEvoker Kılıcı"
+    lore:
+      - "&8&#7a2fbf&m               &8"
+      - " &#7a2fbf&lYetenek &8» &7Evoker Fangs"
+      - " &7Yakındaki düşmanlara diş saldırısı"
+      - " &7gönderir, tam ayaklarının altında belirir."
+      - " &7Etki Alanı: &e{radius} blok"
+      - "&8"
+      - " &#7a2fbf⏱ &7Bekleme Süresi: &e{cooldown} saniye"
+      - "&8&#7a2fbf&m               &8"
+      - " &#7a2fbf&l▶ &7Sağ tıkla yeteneği kullan!"
+    cooldown: 50
+    radius: 7
+
+  ari:
+    slot: 29
+    material: NETHERITE_SWORD
+    display_name: "&#ffcc00Arı Kılıcı"
+    lore:
+      - "&8&#ffcc00&m               &8"
+      - " &#ffcc00&lYetenek &8» &7Arı Saldırısı"
+      - " &7Yakındaki düşmanlara öfkeli bir arı"
+      - " &7gönderir ve hasar verir."
+      - " &7Arı &e2.3 saniye&7 sonra kaybolur."
+      - " &7Etki Alanı: &e{radius} blok"
+      - "&8"
+      - " &#ffcc00⏱ &7Bekleme Süresi: &e{cooldown} saniye"
+      - "&8&#ffcc00&m               &8"
+      - " &#ffcc00&l▶ &7Sağ tıkla yeteneği kullan!"
+    cooldown: 45
+    radius: 7
+
+  warden:
+    slot: 31
+    material: NETHERITE_SWORD
+    display_name: "&#0f4c4cWarden Kılıcı"
+    lore:
+      - "&8&#0f4c4c&m               &8"
+      - " &#0f4c4c&lYetenek &8» &7Karanlık Bakış"
+      - " &7Hedefe &e2.5 saniye&7 Körlük verir."
+      - " &7Etki Alanı: &e{radius} blok"
+      - "&8"
+      - " &#0f4c4c⏱ &7Bekleme Süresi: &e{cooldown} saniye"
+      - "&8&#0f4c4c&m               &8"
+      - " &#0f4c4c&l▶ &7Sağ tıkla yeteneği kullan!"
+    cooldown: 30
+    radius: 7
 
 messages:
   no_nearby_players: "&e[!] &7Yakında oyuncu bulunamadı."
