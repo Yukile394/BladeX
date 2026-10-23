@@ -1,227 +1,39 @@
-# ============================================================
-#   BladeX - Silvera Özel Kılıçlar
-# ============================================================
+settings:
+  min-password-length: 6
+  max-password-length: 32
+  max-attempts: 5
+  lockout-seconds: 300
 
-prefix: "&#c0c0ff&lSilvera &8» &r"
+  session:
+    enabled: true
+    # Ayni IP'den bu sure icinde tekrar girerse sifre sormaz (saat)
+    hours: 24
 
-menu:
-  title: "&#c0c0ffKılıç Menüsü"
-  size: 54
-
-swords:
-
-  shulker:
-    slot: 10
-    material: NETHERITE_SWORD
-    display_name: "&#d966ffShulker Kılıcı"
-    lore:
-      - "&8&#d966ff&m               &8"
-      - " &#d966ff&lYetenek &8» &7Levitasyon Dalgası"
-      - " &7Yakındaki düşmanları havaya savurur."
-      - " &7Etki Alanı: &e{radius} blok"
-      - "&8"
-      - " &#d966ff⏱ &7Bekleme Süresi: &e{cooldown} saniye"
-      - "&8&#d966ff&m               &8"
-      - " &#d966ff&l▶ &7Sağ tıkla yeteneği kullan!"
-    cooldown: 30
-    radius: 6
-
-  creeper:
-    slot: 11
-    material: NETHERITE_SWORD
-    display_name: "&#33ff66Creeper Kılıcı"
-    lore:
-      - "&8&#33ff66&m               &8"
-      - " &#33ff66&lYetenek &8» &7Patlama Dalgası"
-      - " &7Düşmanları geri savurur"
-      - " &7ve &c6 Hasar&7 verir."
-      - " &7Etki Alanı: &e{radius} blok"
-      - "&8"
-      - " &#33ff66⏱ &7Bekleme Süresi: &e{cooldown} saniye"
-      - "&8&#33ff66&m               &8"
-      - " &#33ff66&l▶ &7Sağ tıkla yeteneği kullan!"
-    cooldown: 25
-    radius: 6
-
-  orumcek:
-    slot: 12
-    material: NETHERITE_SWORD
-    display_name: "&#ff4444Örümcek Kılıcı"
-    lore:
-      - "&8&#ff4444&m               &8"
-      - " &#ff4444&lYetenek &8» &7Ağ Tuzağı"
-      - " &7Düşmanların ayağına örümcek ağı bırakır."
-      - " &7Ağlar &e2.9 saniye&7 sonra kaybolur."
-      - " &7Etki Alanı: &e{radius} blok"
-      - "&8"
-      - " &#ff4444⏱ &7Bekleme Süresi: &e{cooldown} saniye"
-      - "&8&#ff4444&m               &8"
-      - " &#ff4444&l▶ &7Sağ tıkla yeteneği kullan!"
-    cooldown: 60
-    radius: 6
-
-  phantom:
-    slot: 13
-    material: NETHERITE_SWORD
-    display_name: "&#66ccffPhantom Kılıcı"
-    lore:
-      - "&8&#66ccff&m               &8"
-      - " &#66ccff&lYetenek &8» &7Elytra Kilidi"
-      - " &7Yakındaki oyuncuların"
-      - " &7Elytra kullanımını &e2 saniye&7 engeller."
-      - " &7Etki Alanı: &e{radius} blok"
-      - "&8"
-      - " &#66ccff⏱ &7Bekleme Süresi: &e{cooldown} saniye"
-      - "&8&#66ccff&m               &8"
-      - " &#66ccff&l▶ &7Sağ tıkla yeteneği kullan!"
-    cooldown: 65
-    radius: 6
-
-  yildirim:
-    slot: 14
-    material: NETHERITE_SWORD
-    display_name: "&#ffee55Yıldırım Kılıcı"
-    lore:
-      - "&8&#ffee55&m               &8"
-      - " &#ffee55&lYetenek &8» &7Yıldırım Çağrısı"
-      - " &7Yakındaki düşmanlara"
-      - " &eşimşek düşürür."
-      - " &7Etki Alanı: &e{radius} blok"
-      - "&8"
-      - " &#ffee55⏱ &7Bekleme Süresi: &e{cooldown} saniye"
-      - "&8&#ffee55&m               &8"
-      - " &#ffee55&l▶ &7Sağ tıkla yeteneği kullan!"
-    cooldown: 30
-    radius: 6
-
-  ejderha:
-    slot: 15
-    material: NETHERITE_SWORD
-    display_name: "&#ff9933Ejderha Kılıcı"
-    lore:
-      - "&8&#ff9933&m               &8"
-      - " &#ff9933&lYetenek &8» &7Ejderha Nefesi"
-      - " &7Düşmanları ateşe verir"
-      - " &7ve &cWither II&7 etkisi uygular."
-      - " &7Etki Alanı: &e{radius} blok"
-      - "&8"
-      - " &#ff9933⏱ &7Bekleme Süresi: &e{cooldown} saniye"
-      - "&8&#ff9933&m               &8"
-      - " &#ff9933&l▶ &7Sağ tıkla yeteneği kullan!"
-    cooldown: 30
-    radius: 6
-
-  gardiyan:
-    slot: 16
-    material: NETHERITE_SWORD
-    display_name: "&#00ffeeGardiyan Kılıcı"
-    lore:
-      - "&8&#00ffee&m               &8"
-      - " &#00ffee&lYetenek &8» &7Lanet Darbesi"
-      - " &7Düşmanlara &cMining Fatigue III"
-      - " &7etkisi uygular."
-      - " &7Etki Alanı: &e{radius} blok"
-      - "&8"
-      - " &#00ffee⏱ &7Bekleme Süresi: &e{cooldown} saniye"
-      - "&8&#00ffee&m               &8"
-      - " &#00ffee&l▶ &7Sağ tıkla yeteneği kullan!"
-    cooldown: 60
-    radius: 6
-
-  wither:
-    slot: 30
-    material: NETHERITE_SWORD
-    display_name: "&#999999Wither Kılıcı"
-    lore:
-      - "&8&#999999&m               &8"
-      - " &#999999&lYetenek &8» &7Karanlık Lanet"
-      - " &7Yakındaki düşmanlara"
-      - " &cWither II&7 etkisi verir."
-      - " &7Etki Alanı: &e{radius} blok"
-      - "&8"
-      - " &#999999⏱ &7Bekleme Süresi: &e{cooldown} saniye"
-      - "&8&#999999&m               &8"
-      - " &#999999&l▶ &7Sağ tıkla yeteneği kullan!"
-    cooldown: 30
-    radius: 6
-
-  enderman:
-    slot: 32
-    material: NETHERITE_SWORD
-    display_name: "&#cc66ffEnderman Kılıcı"
-    lore:
-      - "&8&#cc66ff&m               &8"
-      - " &#cc66ff&lYetenek &8» &7İleriye Işınlanma"
-      - " &7Baktığın yönde &e2.5 blok"
-      - " &7ileriye ışınlanırsın."
-      - " &7Sadece hava, odun ve ağ bloklarına!"
-      - "&8"
-      - " &#cc66ff⏱ &7Bekleme Süresi: &e{cooldown} saniye"
-      - "&8&#cc66ff&m               &8"
-      - " &#cc66ff&l▶ &7Sağ tıkla yeteneği kullan!"
-    cooldown: 30
-    radius: 6
-
-  evoker:
-    slot: 28
-    material: NETHERITE_SWORD
-    display_name: "&#7a2fbfEvoker Kılıcı"
-    lore:
-      - "&8&#7a2fbf&m               &8"
-      - " &#7a2fbf&lYetenek &8» &7Evoker Fangs"
-      - " &7Yakındaki düşmanlara diş saldırısı"
-      - " &7gönderir, tam ayaklarının altında belirir."
-      - " &7Etki Alanı: &e{radius} blok"
-      - "&8"
-      - " &#7a2fbf⏱ &7Bekleme Süresi: &e{cooldown} saniye"
-      - "&8&#7a2fbf&m               &8"
-      - " &#7a2fbf&l▶ &7Sağ tıkla yeteneği kullan!"
-    cooldown: 50
-    radius: 7
-
-  ari:
-    slot: 29
-    material: NETHERITE_SWORD
-    display_name: "&#ffcc00Arı Kılıcı"
-    lore:
-      - "&8&#ffcc00&m               &8"
-      - " &#ffcc00&lYetenek &8» &7Arı Saldırısı"
-      - " &7Yakındaki düşmanlara öfkeli bir arı"
-      - " &7gönderir ve hasar verir."
-      - " &7Arı &e2.3 saniye&7 sonra kaybolur."
-      - " &7Etki Alanı: &e{radius} blok"
-      - "&8"
-      - " &#ffcc00⏱ &7Bekleme Süresi: &e{cooldown} saniye"
-      - "&8&#ffcc00&m               &8"
-      - " &#ffcc00&l▶ &7Sağ tıkla yeteneği kullan!"
-    cooldown: 45
-    radius: 7
-
-  warden:
-    slot: 31
-    material: NETHERITE_SWORD
-    display_name: "&#0f4c4cWarden Kılıcı"
-    lore:
-      - "&8&#0f4c4c&m               &8"
-      - " &#0f4c4c&lYetenek &8» &7Karanlık Bakış"
-      - " &7Hedefe &e2.5 saniye&7 Körlük verir."
-      - " &7Etki Alanı: &e{radius} blok"
-      - "&8"
-      - " &#0f4c4c⏱ &7Bekleme Süresi: &e{cooldown} saniye"
-      - "&8&#0f4c4c&m               &8"
-      - " &#0f4c4c&l▶ &7Sağ tıkla yeteneği kullan!"
-    cooldown: 30
-    radius: 7
+  animation:
+    enabled: true
+    # Kac tick'te bir animasyon yenilensin (20 tick = 1 saniye)
+    speed-ticks: 3
+    register-title: "REGISTER"
+    login-title: "LOGIN"
+    register-subtitle: "&7/register <sifre> <sifre>"
+    login-subtitle: "&7/login <sifre>"
 
 messages:
-  no_nearby_players: "&e[!] &7Yakında oyuncu bulunamadı."
-  cooldown_message: "&cTekrar kullanmak için &e{time} saniye &cbeklemelisin!"
-  ability_used: "&a▶ &f{ability} yeteneği kullanıldı!"
-  elytra_broken: "&cElytra Devre Dışı!"
-
-flop_colors:
-  - "&#c0c0ff"
-  - "&#d9d9ff"
-  - "&#ffffff"
-  - "&#d9d9ff"
-  - "&#c0c0ff"
+  prefix: "&8[&bBladeX&8] &r"
+  register-prompt: "&eHesabin yok! &f/register <sifre> <sifre> &7yazarak kayit ol."
+  login-prompt: "&eGiris yapmalisin! &f/login <sifre> &7yaz."
+  register-success: "&aKayit basarili, giris yaptin!"
+  login-success: "&aGiris basarili!"
+  auto-login: "&aOturumun acik oldugu icin otomatik giris yapildi."
+  already-logged: "&cZaten giris yaptin."
+  already-registered: "&cBu hesap zaten kayitli. &f/login <sifre> &cyaz."
+  not-registered: "&cHesabin yok. &f/register <sifre> <sifre> &cyaz."
+  usage-register: "&cKullanim: &f/register <sifre> <sifre>"
+  usage-login: "&cKullanim: &f/login <sifre>"
+  mismatch: "&cGirdigin sifreler ayni degil."
+  short-password: "&cSifre en az &f{min} &ckarakter olmali."
+  long-password: "&cSifre en fazla &f{max} &ckarakter olabilir."
+  wrong-password: "&cYanlis sifre! Kalan deneme hakkin: &f{left}"
+  locked: "&cCok fazla yanlis deneme. &f{sec} &csaniye bekle."
+  must-login: "&cOnce giris yapmalisin!"
+  error: "&cBir hata olustu, lutfen tekrar dene."
