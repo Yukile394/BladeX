@@ -1,927 +1,427 @@
 package com.bladex;
 
-import com.sk89q.worldguard.WorldGuard;
-import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
-import com.sk89q.worldguard.protection.flags.Flags;
-import com.sk89q.worldguard.protection.flags.StateFlag;
-import com.sk89q.worldguard.protection.regions.RegionQuery;
-import com.sk89q.worldedit.bukkit.BukkitAdapter;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.TextComponent;
-import org.bukkit.*;
-import org.bukkit.block.Block;
-import org.bukkit.command.*;
+import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.*;
-import org.bukkit.event.*;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.event.Cancellable;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
-import org.bukkit.event.entity.EntityToggleGlideEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.inventory.*;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.*;
-import java.util.Collections;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import java.io.File;
+import java.io.IOException;
+import java.security.MessageDigest;
+import java.security.SecureRandom;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 public class BladeX extends JavaPlugin implements Listener {
 
-    private final Map<UUID, Map<String, Long>> cooldowns    = new HashMap<>();
-    private final Map<UUID, Long>              elytraBanned = new HashMap<>();
-    private int flopTick = 0;
-    private boolean worldGuardEnabled = false;
-    private final Set<UUID> openMenus = new HashSet<>();
+    private static final int PBKDF2_ITERATIONS = 120000;
+    private static final int KEY_LENGTH = 256;
+    private static final long HOUR_MS = 3600000L;
 
-    // ─── PDC-Recovery (crate plugin uyumluluğu) ────────────────────────────────
-    // Görünüm (display name / lore) -> bladex_type eşleşme indeksi. Config her
-    // yüklendiğinde rebuildSwordIndex() ile yeniden inşa edilir, O(1)/O(n_kilic) lookup saglar.
-    private final Map<String, String>       nameKeyIndex = new HashMap<>(); // normalize(isim) -> key
-    private final Map<String, List<String>>  loreKeyIndex = new HashMap<>(); // key -> normalize(lore) satirlari
-    private NamespacedKey bladeXTypeKeyCache;
+    private final Map<UUID, Account> accounts = new HashMap<>();
+    private final Set<UUID> authed = new HashSet<>();
+    private final Map<UUID, Integer> attempts = new HashMap<>();
+    private final Map<UUID, Long> lockedUntil = new HashMap<>();
+    private final SecureRandom random = new SecureRandom();
+    private File dataFile;
+    private long animTick = 0;
+
+    private int minLen, maxLen, maxAttempts, lockSeconds, sessionHours, animSpeed;
+    private boolean sessionEnabled, animEnabled;
+    private String regTitle, logTitle, regSub, logSub;
+
+    private static class Account {
+        String hash;
+        String ip = "";
+        long lastLogin;
+    }
+
+    // ===================== LIFECYCLE =====================
 
     @Override
     public void onEnable() {
         saveDefaultConfig();
-        Bukkit.getPluginManager().registerEvents(this, this);
-        if (Bukkit.getPluginManager().getPlugin("WorldGuard") != null) {
-            worldGuardEnabled = true;
-            getLogger().info("WorldGuard bulundu, bolge korumasi aktif.");
-        }
-        rebuildSwordIndex();
-        new BukkitRunnable() {
-            @Override public void run() { flopTick++; }
-        }.runTaskTimer(this, 0L, 2L);
+        loadSettings();
+        dataFile = new File(getDataFolder(), "users.yml");
+        loadAccounts();
+        getServer().getPluginManager().registerEvents(this, this);
 
-        // Crate pluginleri (ExcellentCrates, CrazyCrates vb.) PDC verisini koruyamayabilir.
-        // Cevrimici oyuncularin envanterini periyodik olarak tarayip, gorunumu (isim/lore)
-        // eslesen ama bladex_type PDC'si eksik olan kiliclari otomatik onarir.
-        new BukkitRunnable() {
-            @Override public void run() {
-                for (Player online : Bukkit.getOnlinePlayers()) {
-                    repairPlayerInventory(online);
+        if (animEnabled) {
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    animate();
                 }
-            }
-        }.runTaskTimer(this, 100L, 100L); // 5 saniyede bir (100 tick)
-
-        getLogger().info("BladeX aktif!");
+            }.runTaskTimer(this, 0L, animSpeed);
+        }
+        getLogger().info("BladeX Register/Login aktif.");
     }
 
     @Override
     public void onDisable() {
-        getLogger().info("BladeX devre disi.");
+        saveAccounts();
     }
 
-    // ─── Commands ─────────────────────────────────────────────────────────────
+    private void loadSettings() {
+        reloadConfig();
+        FileConfiguration c = getConfig();
+        minLen = c.getInt("settings.min-password-length", 6);
+        maxLen = c.getInt("settings.max-password-length", 32);
+        maxAttempts = c.getInt("settings.max-attempts", 5);
+        lockSeconds = c.getInt("settings.lockout-seconds", 300);
+        sessionEnabled = c.getBoolean("settings.session.enabled", true);
+        sessionHours = c.getInt("settings.session.hours", 24);
+        animEnabled = c.getBoolean("settings.animation.enabled", true);
+        animSpeed = Math.max(1, c.getInt("settings.animation.speed-ticks", 3));
+        regTitle = c.getString("settings.animation.register-title", "REGISTER");
+        logTitle = c.getString("settings.animation.login-title", "LOGIN");
+        regSub = ChatColor.translateAlternateColorCodes('&',
+                c.getString("settings.animation.register-subtitle", "&7/register <sifre> <sifre>"));
+        logSub = ChatColor.translateAlternateColorCodes('&',
+                c.getString("settings.animation.login-subtitle", "&7/login <sifre>"));
+    }
+
+    // ===================== STORAGE =====================
+
+    private void loadAccounts() {
+        accounts.clear();
+        if (!dataFile.exists()) return;
+        FileConfiguration y = YamlConfiguration.loadConfiguration(dataFile);
+        ConfigurationSection sec = y.getConfigurationSection("users");
+        if (sec == null) return;
+
+        for (String key : sec.getKeys(false)) {
+            ConfigurationSection s = sec.getConfigurationSection(key);
+            if (s == null) continue;
+            try {
+                Account a = new Account();
+                a.hash = s.getString("hash");
+                a.ip = s.getString("ip", "");
+                a.lastLogin = s.getLong("last-login", 0L);
+                if (a.hash != null) accounts.put(UUID.fromString(key), a);
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+    }
+
+    private void saveAccounts() {
+        FileConfiguration y = new YamlConfiguration();
+        for (Map.Entry<UUID, Account> e : accounts.entrySet()) {
+            String path = "users." + e.getKey();
+            y.set(path + ".hash", e.getValue().hash);
+            y.set(path + ".ip", e.getValue().ip);
+            y.set(path + ".last-login", e.getValue().lastLogin);
+        }
+        try {
+            getDataFolder().mkdirs();
+            y.save(dataFile);
+        } catch (IOException ex) {
+            getLogger().severe("users.yml kaydedilemedi: " + ex.getMessage());
+        }
+    }
+
+    // ===================== HASHING (PBKDF2) =====================
+
+    private byte[] pbkdf(String pw, byte[] salt) throws Exception {
+        PBEKeySpec spec = new PBEKeySpec(pw.toCharArray(), salt, PBKDF2_ITERATIONS, KEY_LENGTH);
+        try {
+            return SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).getEncoded();
+        } finally {
+            spec.clearPassword();
+        }
+    }
+
+    private String makeHash(String pw) throws Exception {
+        byte[] salt = new byte[16];
+        random.nextBytes(salt);
+        return Base64.getEncoder().encodeToString(salt) + ":"
+                + Base64.getEncoder().encodeToString(pbkdf(pw, salt));
+    }
+
+    private boolean verify(String pw, String stored) throws Exception {
+        String[] parts = stored.split(":");
+        if (parts.length != 2) return false;
+        byte[] salt = Base64.getDecoder().decode(parts[0]);
+        byte[] expected = Base64.getDecoder().decode(parts[1]);
+        return MessageDigest.isEqual(expected, pbkdf(pw, salt));
+    }
+
+    // ===================== COMMANDS =====================
+
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (!(sender instanceof Player p)) { sender.sendMessage("Sadece oyuncular."); return true; }
-        if (!p.hasPermission("bladex.admin")) { p.sendMessage(color("&cYetkin yok.")); return true; }
-        switch (cmd.getName().toLowerCase()) {
-            case "kilicvermenu" -> openSwordMenu(p);
-            case "bladex" -> {
-                if (args.length > 0 && args[0].equalsIgnoreCase("reload")) {
-                    reloadConfig();
-                    rebuildSwordIndex();
-                    p.sendMessage(color(cfg("prefix") + "&aConfig yeniden yuklendi!"));
-                } else {
-                    p.sendMessage(color(cfg("prefix") + "&eKullanim: &f/bladex reload"));
-                }
+        if (!(sender instanceof Player p)) {
+            sender.sendMessage("Bu komut sadece oyuncular icindir.");
+            return true;
+        }
+        switch (cmd.getName().toLowerCase(Locale.ROOT)) {
+            case "register" -> handleRegister(p, args);
+            case "login" -> handleLogin(p, args);
+            default -> {
+                return false;
             }
-            case "bladexreload" -> {
-                reloadConfig();
-                rebuildSwordIndex();
-                p.sendMessage(color(cfg("prefix") + "&aBladeX Reload Atildi!"));
-            }
-            case "unbreakable" -> handleUnbreakableCommand(p);
-            case "keskinlikver" -> handleEnchantCommand(p, args, "sharpness", "Keskinlik");
-            case "alevdencehre" -> handleEnchantCommand(p, args, "fire_aspect", "Alev Cehresi");
         }
         return true;
     }
 
-    /** Elindeki BladeX menu kilicinin bladex_type PDC etiketi var mi kontrol eder. */
-    private boolean isBladeXSword(ItemStack item) {
-        if (item == null || !item.hasItemMeta()) return false;
-        return item.getItemMeta().getPersistentDataContainer()
-            .has(bladeXTypeKey(), PersistentDataType.STRING);
-    }
+    private void handleRegister(Player p, String[] args) {
+        UUID id = p.getUniqueId();
+        if (authed.contains(id)) { msg(p, "already-logged"); return; }
+        if (accounts.containsKey(id)) { msg(p, "already-registered"); return; }
+        if (args.length != 2) { msg(p, "usage-register"); return; }
+        if (!args[0].equals(args[1])) { msg(p, "mismatch"); return; }
+        if (args[0].length() < minLen) { msg(p, "short-password", "{min}", String.valueOf(minLen)); return; }
+        if (args[0].length() > maxLen) { msg(p, "long-password", "{max}", String.valueOf(maxLen)); return; }
 
-    /** "bladex_type" NamespacedKey'ini cache'ler, her cagirida yeni nesne olusturmaz. */
-    private NamespacedKey bladeXTypeKey() {
-        if (bladeXTypeKeyCache == null) {
-            bladeXTypeKeyCache = new NamespacedKey(this, "bladex_type");
-        }
-        return bladeXTypeKeyCache;
-    }
-
-    /**
-     * Metni karsilastirma icin normalize eder: renk kodlarindan arindirilmis
-     * metni trim + lowercase yapar. Boslukta/buyuk-kucuk harfte olusabilecek
-     * kucuk farklardan dolayi eslesmenin kacmasini engeller.
-     */
-    private String normalize(String text) {
-        return text == null ? "" : ChatColor.stripColor(text).trim().toLowerCase(Locale.ROOT);
-    }
-
-    /**
-     * config.yml'deki "swords" bolumunden gorunum (display name + lore) -> key
-     * indekslerini yeniden insa eder. onEnable ve her /bladex reload sonrasi cagrilmalidir.
-     * Bu sayede kilicin gorunumune bakarak hangi kilic oldugunu O(1)/O(n) surede tespit edebiliriz.
-     */
-    private void rebuildSwordIndex() {
-        nameKeyIndex.clear();
-        loreKeyIndex.clear();
-        ConfigurationSection swords = getConfig().getConfigurationSection("swords");
-        if (swords == null) return;
-
-        for (String key : swords.getKeys(false)) {
-            ConfigurationSection sec = swords.getConfigurationSection(key);
-            if (sec == null) continue;
-
-            String rawName = sec.getString("display_name", "&fKilic");
-            String normalizedName = normalize(color(rawName));
-            if (!normalizedName.isEmpty()) {
-                nameKeyIndex.put(normalizedName, key);
-            }
-
-            int cd  = sec.getInt("cooldown", 30);
-            int rad = sec.getInt("radius", 6);
-            List<String> normalizedLore = new ArrayList<>();
-            for (String line : sec.getStringList("lore")) {
-                String resolved = line.replace("{cooldown}", String.valueOf(cd))
-                                       .replace("{radius}", String.valueOf(rad));
-                normalizedLore.add(normalize(color(resolved)));
-            }
-            if (!normalizedLore.isEmpty()) {
-                loreKeyIndex.put(key, normalizedLore);
-            }
-        }
-    }
-
-    /**
-     * PDC etiketi olmayan (crate plugini tarafindan silinmis/kopyalanmamis) bir kilicin,
-     * gorunumune (display name veya lore) bakarak hangi BladeX kilici oldugunu tespit eder.
-     * Once display name denenir (daha ucuz/kesin), bulunamazsa lore karsilastirmasina gecilir.
-     *
-     * @return eslesen sword key'i, hicbir eslesme yoksa null
-     */
-    private String detectBladeXKeyByAppearance(ItemMeta meta) {
-        if (meta == null) return null;
-
-        if (meta.hasDisplayName()) {
-            String key = nameKeyIndex.get(normalize(meta.getDisplayName()));
-            if (key != null) return key;
-        }
-
-        if (meta.hasLore()) {
-            List<String> itemLore = meta.getLore();
-            if (itemLore != null && !itemLore.isEmpty()) {
-                List<String> normalizedItemLore = new ArrayList<>(itemLore.size());
-                for (String line : itemLore) normalizedItemLore.add(normalize(line));
-                for (Map.Entry<String, List<String>> entry : loreKeyIndex.entrySet()) {
-                    if (entry.getValue().equals(normalizedItemLore)) {
-                        return entry.getKey();
-                    }
-                }
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Bir esyanin bladex_type PDC'sini dogrular; varsa direkt donderur.
-     * Yoksa gorunumden (isim/lore) tespit etmeye calisir ve basarili olursa
-     * PDC etiketini itemin uzerine otomatik olarak geri yazar (kalici onarim).
-     * Bu metot NullPointerException'a karsi guvenlidir ve item'i yerinde (in-place) gunceller.
-     *
-     * @return tespit edilen/mevcut bladex sword key'i, BladeX kilici degilse null
-     */
-    private String resolveAndRepairBladeXType(ItemStack item) {
-        if (item == null || item.getType() == Material.AIR || !item.hasItemMeta()) return null;
-
-        ItemMeta meta = item.getItemMeta();
-        if (meta == null) return null;
-
-        String existing = meta.getPersistentDataContainer().get(bladeXTypeKey(), PersistentDataType.STRING);
-        if (existing != null && !existing.isEmpty()) {
-            return existing;
-        }
-
-        String detected = detectBladeXKeyByAppearance(meta);
-        if (detected == null) return null;
-
-        // PDC eksikti ama gorunumden tespit edildi -> etiketi kalici olarak geri yaz.
-        meta.getPersistentDataContainer().set(bladeXTypeKey(), PersistentDataType.STRING, detected);
-        item.setItemMeta(meta);
-        return detected;
-    }
-
-    /** Malzeme adi "_SWORD" ile bitiyor mu? Gereksiz meta/lore taramasindan kacinmak icin hizli on filtre. */
-    private boolean isSwordMaterial(ItemStack item) {
-        if (item == null || item.getType() == Material.AIR) return false;
-        return item.getType().name().endsWith("_SWORD");
-    }
-
-    /**
-     * Bir oyuncunun tum envanterini (ana envanter + zirh + offhand) tarayip,
-     * PDC'si eksik ama gorunumu eslesen BladeX kiliclarini otomatik onarir.
-     * Crate pluginleri (ExcellentCrates, CrazyCrates vb.) ile verilen odullerin
-     * de calismasini saglamak icin periyodik olarak ve oyuncu giriste cagrilir.
-     */
-    private void repairPlayerInventory(Player p) {
-        if (p == null || !p.isOnline()) return;
-        PlayerInventory inv = p.getInventory();
-
-        ItemStack[] contents = inv.getContents();
-        for (ItemStack item : contents) {
-            if (isSwordMaterial(item)) {
-                resolveAndRepairBladeXType(item);
-            }
-        }
-
-        ItemStack offhand = inv.getItemInOffHand();
-        if (isSwordMaterial(offhand)) {
-            resolveAndRepairBladeXType(offhand);
-        }
-    }
-
-    /** /unbreakable — elde tutulan menu kilicini kirilmaz yapar (tekrar basinca geri alir). */
-    private void handleUnbreakableCommand(Player p) {
-        ItemStack held = p.getInventory().getItemInMainHand();
-        if (!isBladeXSword(held)) {
-            p.sendMessage(color("&cElinde bir BladeX menu kilici tutmuyorsun."));
-            return;
-        }
-        ItemMeta meta = held.getItemMeta();
-        boolean makeUnbreakable = !meta.isUnbreakable();
-        meta.setUnbreakable(makeUnbreakable);
-        if (makeUnbreakable) {
-            meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_UNBREAKABLE);
-        } else {
-            meta.removeItemFlags(org.bukkit.inventory.ItemFlag.HIDE_UNBREAKABLE);
-        }
-        held.setItemMeta(meta);
-        if (makeUnbreakable) {
-            p.sendMessage(color(cfg("prefix") + "&aElindeki kilic artik kirilmaz."));
-        } else {
-            p.sendMessage(color(cfg("prefix") + "&eElindeki kilicin kirilmazligi kaldirildi."));
-        }
-    }
-
-    /** /keskinlikver <seviye> ve /alevdencehre <seviye> — elde tutulan menu kilicina buyu basar. */
-    private void handleEnchantCommand(Player p, String[] args, String enchantId, String displayLabel) {
-        if (args.length < 1) {
-            p.sendMessage(color("&eKullanim: &f/" + (enchantId.equals("sharpness") ? "keskinlikver" : "alevdencehre") + " <seviye>"));
-            return;
-        }
-        int level;
         try {
-            level = Integer.parseInt(args[0]);
-        } catch (NumberFormatException ex) {
-            p.sendMessage(color("&cGecersiz sayi: &f" + args[0]));
-            return;
+            Account a = new Account();
+            a.hash = makeHash(args[0]);
+            accounts.put(id, a);
+            authenticate(p, "register-success");
+        } catch (Exception ex) {
+            accounts.remove(id);
+            getLogger().severe("Kayit hatasi: " + ex.getClass().getSimpleName());
+            msg(p, "error");
         }
-        if (level < 0) {
-            p.sendMessage(color("&cSeviye 0'dan kucuk olamaz."));
-            return;
-        }
-        ItemStack held = p.getInventory().getItemInMainHand();
-        if (!isBladeXSword(held)) {
-            p.sendMessage(color("&cElinde bir BladeX menu kilici tutmuyorsun."));
-            return;
-        }
-        org.bukkit.enchantments.Enchantment ench = matchEnchant(enchantId);
-        if (ench == null) {
-            p.sendMessage(color("&cSunucu bu buyuyu taniyamadi: " + enchantId));
-            return;
-        }
-        ItemMeta meta = held.getItemMeta();
-        if (level == 0) {
-            meta.removeEnchant(ench);
-            held.setItemMeta(meta);
-            p.sendMessage(color(cfg("prefix") + "&e" + displayLabel + " kaldirildi."));
-            return;
-        }
-        meta.addEnchant(ench, level, true); // true = unsafe, seviye sinirini yok sayar
-        held.setItemMeta(meta);
-        p.sendMessage(color(cfg("prefix") + "&a" + displayLabel + " &fseviye " + level + " &aelindeki kilica basildi."));
     }
 
-    // ─── Sword Menu ───────────────────────────────────────────────────────────
-    private void openSwordMenu(Player p) {
-        String title = color(cfg("menu.title"));
-        int size = getConfig().getInt("menu.size", 54);
-        Inventory inv = Bukkit.createInventory(null, size, title);
+    private void handleLogin(Player p, String[] args) {
+        UUID id = p.getUniqueId();
+        if (authed.contains(id)) { msg(p, "already-logged"); return; }
+        Account a = accounts.get(id);
+        if (a == null) { msg(p, "not-registered"); return; }
 
-        // Bilgi itemi — slot 4 (üst orta, eski konum)
-        inv.setItem(4, buildInfoItem());
-
-        ConfigurationSection swords = getConfig().getConfigurationSection("swords");
-        if (swords != null) {
-            for (String key : swords.getKeys(false)) {
-                ConfigurationSection sec = swords.getConfigurationSection(key);
-                if (sec == null) continue;
-                int slot = sec.getInt("slot", 0);
-                if (slot < 0 || slot >= size) continue;
-                inv.setItem(slot, buildSword(key, sec));
+        long now = System.currentTimeMillis();
+        Long until = lockedUntil.get(id);
+        if (until != null) {
+            if (now < until) {
+                msg(p, "locked", "{sec}", String.valueOf((until - now + 999) / 1000));
+                return;
             }
+            lockedUntil.remove(id);
         }
 
-        openMenus.add(p.getUniqueId());
-        p.openInventory(inv);
-    }
+        if (args.length != 1) { msg(p, "usage-login"); return; }
 
-    /** Bilgi itemi — menünün üstüne, ortaya (slot 4) */
-    private ItemStack buildInfoItem() {
-        ItemStack item = new ItemStack(Material.BOOK);
-        ItemMeta  meta = item.getItemMeta();
-        meta.setDisplayName(color("&#00ccff&lBladeX &8| &7Bilgi"));
-        List<String> lore = new ArrayList<>();
-        lore.add(color("&8"));
-        lore.add(color("&7Tiklayarak kilici envanterine ekleyebilirsin."));
-        lore.add(color("&7Her kilicin benzersiz bir yetenegi var."));
-        lore.add(color("&7Sag tikla yetenegi kullan, bekleme suresi dolar."));
-        lore.add(color("&8"));
-        lore.add(color("&#ff3333Guvenli bolgede kilic yetenekleri calismaz. [Silvera]"));
-        lore.add(color("&8"));
-        lore.add(color("&#00ccff&lYazar: &fYukile"));
-        meta.setLore(lore);
-        item.setItemMeta(meta);
-        return item;
-    }
-
-    private ItemStack buildSword(String key, ConfigurationSection sec) {
-        Material mat = Material.matchMaterial(sec.getString("material", "NETHERITE_SWORD").toUpperCase());
-        if (mat == null) mat = Material.NETHERITE_SWORD;
-        ItemStack item = new ItemStack(mat);
-        ItemMeta  meta = item.getItemMeta();
-        String rawName = sec.getString("display_name", "&fKilic");
-        String[] flopColors = getConfig().getStringList("flop_colors").toArray(new String[0]);
-        meta.setDisplayName(getFlopTextCustom(ChatColor.stripColor(color(rawName)), flopTick, flopColors));
-        int cd  = sec.getInt("cooldown", 30);
-        int rad = sec.getInt("radius", 6);
-        List<String> lore = new ArrayList<>();
-        for (String line : sec.getStringList("lore")) {
-            lore.add(color(line.replace("{cooldown}", String.valueOf(cd))
-                              .replace("{radius}", String.valueOf(rad))));
-        }
-        meta.setLore(lore);
-        meta.getPersistentDataContainer().set(bladeXTypeKey(), PersistentDataType.STRING, key);
-
-        // ── Büyüler (config: swords.<key>.enchants) ────────────────────────
-        ConfigurationSection enchantSec = sec.getConfigurationSection("enchants");
-        if (enchantSec != null) {
-            for (String enchantKey : enchantSec.getKeys(false)) {
-                org.bukkit.enchantments.Enchantment ench = matchEnchant(enchantKey);
-                if (ench == null) {
-                    getLogger().warning("Gecersiz enchant adi: " + enchantKey + " (kilic: " + key + ")");
-                    continue;
+        try {
+            if (verify(args[0], a.hash)) {
+                attempts.remove(id);
+                authenticate(p, "login-success");
+            } else {
+                int n = attempts.merge(id, 1, Integer::sum);
+                if (n >= maxAttempts) {
+                    attempts.remove(id);
+                    lockedUntil.put(id, now + lockSeconds * 1000L);
+                    msg(p, "locked", "{sec}", String.valueOf(lockSeconds));
+                } else {
+                    msg(p, "wrong-password", "{left}", String.valueOf(maxAttempts - n));
                 }
-                int level = enchantSec.getInt(enchantKey, 1);
-                meta.addEnchant(ench, level, true); // true = unsafe, level sinirini yok sayar (ornek: Sharpness 28)
             }
-        }
-
-        // ── Kırılmazlık (config: swords.<key>.unbreakable) ─────────────────
-        if (sec.getBoolean("unbreakable", false)) {
-            meta.setUnbreakable(true);
-            meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_UNBREAKABLE);
-        }
-
-        // Büyü görünümünü lore'la uyumlu tutmak icin ikonlari gizle (istege bagli, config ile kapatilabilir)
-        if (sec.getBoolean("hide_enchant_icons", false)) {
-            meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS);
-        }
-
-        item.setItemMeta(meta);
-        return item;
-    }
-
-    /**
-     * Enchant ismini (config'den gelen string) resmi Bukkit Enchantment'a çevirir.
-     * "sharpness", "SHARPNESS", "minecraft:sharpness" gibi yazımların hepsini kabul eder.
-     */
-    private org.bukkit.enchantments.Enchantment matchEnchant(String raw) {
-        if (raw == null) return null;
-        String cleaned = raw.toLowerCase().trim().replace(" ", "_");
-        if (cleaned.startsWith("minecraft:")) cleaned = cleaned.substring("minecraft:".length());
-        org.bukkit.NamespacedKey nk = org.bukkit.NamespacedKey.minecraft(cleaned);
-        return org.bukkit.enchantments.Enchantment.getByKey(nk);
-    }
-
-    // ─── Inventory Events ─────────────────────────────────────────────────────
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
-    public void onInventoryClick(InventoryClickEvent e) {
-        if (!(e.getWhoClicked() instanceof Player clicker)) return;
-        if (!openMenus.contains(clicker.getUniqueId())) return;
-        e.setCancelled(true);
-        if (e.getClickedInventory() == null) return;
-        if (e.getClickedInventory() != e.getView().getTopInventory()) return;
-        ItemStack clicked = e.getCurrentItem();
-        if (clicked == null || clicked.getType() == Material.AIR) return;
-        if (!clicked.hasItemMeta()) return;
-        if (clicked.getType() == Material.BOOK) return;
-        if (e.getClick() != org.bukkit.event.inventory.ClickType.LEFT
-         && e.getClick() != org.bukkit.event.inventory.ClickType.RIGHT) return;
-        HashMap<Integer, ItemStack> leftover = clicker.getInventory().addItem(clicked.clone());
-        if (leftover.isEmpty()) {
-            clicker.sendMessage(color(cfg("prefix") + "&aEsya envanterine eklendi."));
-        } else {
-            clicker.sendMessage(color(cfg("prefix") + "&eEnvanterinde yer yok!"));
+        } catch (Exception ex) {
+            msg(p, "error");
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
-    public void onInventoryDrag(InventoryDragEvent e) {
-        if (!(e.getWhoClicked() instanceof Player p)) return;
-        if (!openMenus.contains(p.getUniqueId())) return;
-        e.setCancelled(true);
+    private void authenticate(Player p, String msgKey) {
+        UUID id = p.getUniqueId();
+        Account a = accounts.get(id);
+        if (a == null) return;
+        authed.add(id);
+        a.ip = ip(p);
+        a.lastLogin = System.currentTimeMillis();
+        saveAccounts();
+        p.resetTitle();
+        msg(p, msgKey);
+    }
+
+    // ===================== JOIN / QUIT =====================
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent e) {
+        Player p = e.getPlayer();
+        authed.remove(p.getUniqueId());
+
+        Bukkit.getScheduler().runTaskLater(this, () -> {
+            if (!p.isOnline()) return;
+            Account a = accounts.get(p.getUniqueId());
+
+            boolean sameIp = a != null && a.ip.equals(ip(p));
+            boolean sessionValid = a != null && sessionEnabled
+                    && System.currentTimeMillis() - a.lastLogin < sessionHours * HOUR_MS;
+
+            if (sameIp && sessionValid) {
+                authenticate(p, "auto-login");
+            } else {
+                msg(p, a == null ? "register-prompt" : "login-prompt");
+            }
+        }, 10L);
     }
 
     @EventHandler
-    public void onInventoryClose(org.bukkit.event.inventory.InventoryCloseEvent e) {
-        if (!(e.getPlayer() instanceof Player p)) return;
-        openMenus.remove(p.getUniqueId());
+    public void onQuit(PlayerQuitEvent e) {
+        authed.remove(e.getPlayer().getUniqueId());
     }
 
-    // ─── Elytra Kilidi ────────────────────────────────────────────────────────
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onToggleGlide(EntityToggleGlideEvent e) {
-        // ONEMLI: sadece elytrayi ACMAYA calisirken engelle. Eskiden bu kontrol
-        // gliding KAPANIRKEN de calisiyordu; bu da oyuncuyu inemeden surekli
-        // gliding'e zorlayan bir hataya sebep oluyordu. Artik sadece e.isGliding()
-        // true (yani ACILMA denemesi) oldugunda devreye giriyor.
-        if (!e.isGliding()) return;
-        if (!(e.getEntity() instanceof Player p)) return;
-        Long bannedUntil = elytraBanned.get(p.getUniqueId());
-        if (bannedUntil == null) return;
-        if (System.currentTimeMillis() < bannedUntil) {
+    // ===================== COMMAND GATE (sifre gizli) =====================
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onCommandPre(PlayerCommandPreprocessEvent e) {
+        Player p = e.getPlayer();
+        String raw = e.getMessage();
+        String[] parts = raw.split(" ");
+        String cmd = parts[0].toLowerCase(Locale.ROOT);
+
+        if (cmd.equals("/login") || cmd.equals("/register")) {
+            // Komutu sohbete ve loga dusurmeden kendimiz isliyoruz
             e.setCancelled(true);
-            p.setGliding(false);
-        } else {
-            elytraBanned.remove(p.getUniqueId());
-        }
-    }
+            String[] params = Arrays.copyOfRange(parts, 1, parts.length);
+            if (cmd.equals("/register")) handleRegister(p, params);
+            else handleLogin(p, params);
 
-    // ─── Otomatik PDC Onarim Eventleri (crate plugin uyumlulugu) ───────────────
-    // Kilic eline alindiginda, envantere dusen esya alindiginda ve oyuncu
-    // sunucuya girdiginde gorunumden tespit + PDC onarimini tetikler.
-    // Boylece ExcellentCrates/CrazyCrates gibi hangi crate plugini olursa olsun,
-    // PDC verisini korumasa bile kilicin ozel yetenegi sorunsuz calisir.
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onItemHeld(PlayerItemHeldEvent e) {
-        ItemStack newItem = e.getPlayer().getInventory().getItem(e.getNewSlot());
-        if (isSwordMaterial(newItem)) {
-            resolveAndRepairBladeXType(newItem);
-        }
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onPickup(EntityPickupItemEvent e) {
-        if (!(e.getEntity() instanceof Player)) return;
-        ItemStack stack = e.getItem().getItemStack();
-        if (isSwordMaterial(stack) && resolveAndRepairBladeXType(stack) != null) {
-            e.getItem().setItemStack(stack);
-        }
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onJoin(PlayerJoinEvent e) {
-        Player p = e.getPlayer();
-        // 1 tick gecikme: envanterin tam olarak yuklenmesini garanti eder.
-        Bukkit.getScheduler().runTaskLater(this, () -> repairPlayerInventory(p), 1L);
-    }
-
-    // ─── Interact Handler ────────────────────────────────────────────────────
-    @EventHandler(priority = EventPriority.NORMAL)
-    public void onInteract(PlayerInteractEvent e) {
-        if (!e.getAction().name().contains("RIGHT")) return;
-        Player p = e.getPlayer();
-        ItemStack held = p.getInventory().getItemInMainHand();
-        // Once PDC'ye bakar; yoksa gorunumden tespit edip PDC'yi otomatik onarir
-        // (ExcellentCrates/CrazyCrates gibi eklentiler PDC'yi korumamis olsa bile calisir).
-        String bladeKey = resolveAndRepairBladeXType(held);
-        if (bladeKey == null) return;
-        e.setCancelled(true);
-
-        // WorldGuard bolge kontrolu
-        if (worldGuardEnabled && isInProtectedRegion(p)) {
-            p.sendMessage(color("&#ff3333Guvenli bolgede kilic ozelliklerini kullanamazsin."));
-            return;
-        }
-
-        ConfigurationSection swordSec = getConfig().getConfigurationSection("swords." + bladeKey);
-        int cd     = swordSec != null ? swordSec.getInt("cooldown", 30) : 30;
-        int radius = swordSec != null ? swordSec.getInt("radius", 6)    : 6;
-
-        if (isCoolingDown(p, bladeKey)) return;
-
-        // Enderman / Magma kılıçları başka oyuncu gerektirmez — direkt çalıştır
-        // (Enderman: kendi ışınlanması, Magma: kendine Kuvvet verir)
-        if (bladeKey.equals("enderman") || bladeKey.equals("magma")) {
-            applyCooldown(p, bladeKey, cd);
-            playSwordEffect(p);
-            handleSwordSkill(p, bladeKey, Collections.emptyList());
-            return;
-        }
-
-        List<Player> nearby = p.getNearbyEntities(radius, radius, radius).stream()
-            .filter(en -> en instanceof Player && en != p)
-            .map(en -> (Player) en)
-            .toList();
-
-        if (nearby.isEmpty()) {
-            p.sendMessage(color(cfg("messages.no_nearby_players")));
-            return;
-        }
-
-        applyCooldown(p, bladeKey, cd);
-
-        String displayName = getSwordDisplayName(bladeKey);
-        p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-            new TextComponent(color(cfg("messages.ability_used").replace("{ability}", displayName))));
-
-        playSwordEffect(p);
-        handleSwordSkill(p, bladeKey, nearby);
-    }
-
-    private boolean isInProtectedRegion(Player p) {
-        try {
-            RegionQuery query = WorldGuard.getInstance().getPlatform().getRegionContainer().createQuery();
-            com.sk89q.worldedit.util.Location loc = BukkitAdapter.adapt(p.getLocation());
-            StateFlag.State state = query.queryState(loc, WorldGuardPlugin.inst().wrapPlayer(p), Flags.PVP);
-            return state == StateFlag.State.DENY;
-        } catch (Exception ex) {
-            return false;
-        }
-    }
-
-    private String getSwordDisplayName(String key) {
-        ConfigurationSection sec = getConfig().getConfigurationSection("swords." + key);
-        if (sec != null) return ChatColor.stripColor(color(sec.getString("display_name", key)));
-        return key;
-    }
-
-    private void playSwordEffect(Player p) {
-        p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1f, 1f);
-        p.playSound(p.getLocation(), Sound.ENTITY_PLAYER_ATTACK_STRONG, 0.8f, 1f);
-        p.getWorld().spawnParticle(Particle.SWEEP_ATTACK, p.getLocation().add(0, 1, 0), 3);
-        p.getWorld().spawnParticle(Particle.CRIT, p.getLocation().add(0, 1, 0), 8, 0.3, 0.3, 0.3, 0.05);
-    }
-
-    // ─── Kilic Yetenekleri ────────────────────────────────────────────────────
-    private void handleSwordSkill(Player p, String type, List<Player> nearby) {
-        switch (type) {
-
-            // ── Creeper ──────────────────────────────────────────────────────
-            case "creeper" -> {
-                p.playSound(p.getLocation(), Sound.ENTITY_GENERIC_EXPLODE, 1f, 1f);
-                p.getWorld().spawnParticle(Particle.EXPLOSION_EMITTER, p.getLocation(), 1);
-                nearby.forEach(t -> {
-                    t.damage(6, p);
-                    t.setVelocity(t.getLocation().toVector()
-                        .subtract(p.getLocation().toVector())
-                        .normalize().multiply(1.5).setY(0.5));
-                    t.sendTitle("", color("&#ff4400&l💥 Patlama dalgasi!"), 5, 30, 5);
-                    t.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                        new TextComponent(color("&#ff4400&l💥 Creeper Kilici &7— Patlama darbesi aldin!")));
-                });
-            }
-
-            // ── Örümcek ──────────────────────────────────────────────────────
-            case "orumcek" -> {
-                p.playSound(p.getLocation(), Sound.ENTITY_SPIDER_AMBIENT, 1f, 1f);
-                p.playSound(p.getLocation(), Sound.ENTITY_SPIDER_HURT, 0.7f, 0.8f);
-                p.getWorld().spawnParticle(Particle.ASH, p.getLocation().add(0, 1, 0), 20, 0.5, 0.5, 0.5, 0.05);
-                nearby.forEach(t -> {
-                    // Hedefin gercek hitbox merkezini kullanir: getLocation() sadece ayak
-                    // noktasidir ve egilme/yuzme gibi pozlarda kayabilir. BoundingBox merkezi
-                    // her pozda dogru sonuc verir, boylece ag her zaman hedefin tam ortasina
-                    // (hitbox merkezine) yerlesir. Merkez blok doluysa ayak seviyesine doner.
-                    Block centerBlock = t.getBoundingBox().getCenter().toLocation(t.getWorld()).getBlock();
-                    Block webBlock = centerBlock.getType() == Material.AIR ? centerBlock : t.getLocation().getBlock();
-                    if (webBlock.getType() == Material.AIR) {
-                        webBlock.setType(Material.COBWEB);
-                        new BukkitRunnable() {
-                            @Override public void run() {
-                                if (webBlock.getType() == Material.COBWEB)
-                                    webBlock.setType(Material.AIR);
-                            }
-                        }.runTaskLater(BladeX.this, 58L); // ~2.9 saniye
-                    }
-                    t.getWorld().spawnParticle(Particle.ASH, t.getLocation().add(0, 1, 0), 20, 0.4, 0.5, 0.4, 0.03);
-                    t.sendTitle("", color("&#aaaaaa&l🕷 Aga yakalandin!"), 5, 40, 5);
-                    t.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                        new TextComponent(color("&#aaaaaa&l🕷 Örümcek Kilici &7— Aga yakalandin! &8(2.9sn)")));
-                    t.playSound(t.getLocation(), Sound.ENTITY_SPIDER_AMBIENT, 1f, 0.8f);
-                });
-            }
-
-            // ── Ejderha ──────────────────────────────────────────────────────
-            case "ejderha" -> {
-                p.playSound(p.getLocation(), Sound.ENTITY_ENDER_DRAGON_GROWL, 1f, 1f);
-                nearby.forEach(t -> {
-                    t.setFireTicks(100);
-                    t.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 100, 1));
-                    t.getWorld().spawnParticle(Particle.DRAGON_BREATH, t.getLocation().add(0, 1, 0), 30, 0.3, 0.5, 0.3, 0.02);
-                    t.sendTitle("", color("&#cc3300&l🔥 Ejderha nefesi!"), 5, 30, 5);
-                    t.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                        new TextComponent(color("&#cc3300&l🔥 Ejderha Kilici &7— Yaniyorsun ve soluyorsun!")));
-                });
-            }
-
-            // ── Phantom ──────────────────────────────────────────────────────
-            case "phantom" -> {
-                p.playSound(p.getLocation(), Sound.ENTITY_PHANTOM_SWOOP, 1f, 1f);
-                p.playSound(p.getLocation(), Sound.ENTITY_PHANTOM_BITE, 0.8f, 0.9f);
-                p.getWorld().spawnParticle(Particle.ASH, p.getLocation().add(0, 1, 0), 25, 0.5, 0.8, 0.5, 0.05);
-                nearby.forEach(t -> {
-                    elytraBanned.put(t.getUniqueId(), System.currentTimeMillis() + 2000L);
-                    t.setGliding(false);
-                    t.sendTitle(
-                        color("&#ff2222&l⚠ DIKKAT!"),
-                        color("&#ff6666Elytran &f2 saniyeligine &c&lkitlendi&f!"),
-                        5, 50, 5
-                    );
-                    t.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                        new TextComponent(color("&#ff4444&l👻 Phantom Kilici &7— Elytra kitli! &c(2sn)")));
-                    t.playSound(t.getLocation(), Sound.ENTITY_PHANTOM_HURT, 1f, 0.7f);
-                    t.getWorld().spawnParticle(Particle.PORTAL, t.getLocation().add(0, 1, 0), 35, 0.4, 0.6, 0.4, 0.15);
-                    t.getWorld().spawnParticle(Particle.ASH, t.getLocation().add(0, 1, 0), 25, 0.5, 0.8, 0.5, 0.05);
-                    new BukkitRunnable() {
-                        @Override public void run() {
-                            if (t.isOnline()) {
-                                elytraBanned.remove(t.getUniqueId());
-                                t.sendTitle("", color("&#44ff88&l✔ Elytra serbest kaldi!"), 5, 25, 5);
-                                t.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                                    new TextComponent(color("&#44ff88Elytra kilidi kalktı, tekrar ucabilirsin.")));
-                                t.playSound(t.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.5f);
-                            }
-                        }
-                    }.runTaskLater(this, 40L);
-                });
-            }
-
-            // ── Enderman — baktığın yöne 2.5 blok ileriye ışınla ────────────
-            case "enderman" -> {
-                Location origin = p.getLocation().clone();
-                p.playSound(origin, Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1f);
-                p.getWorld().spawnParticle(Particle.PORTAL, origin.clone().add(0, 1, 0), 25, 0.4, 0.8, 0.4, 0.1);
-
-                Location dest = findSafeTeleportForward(p, 2.5);
-                if (dest != null) {
-                    p.teleport(dest);
-                    p.getWorld().spawnParticle(Particle.PORTAL, dest.clone().add(0, 1, 0), 25, 0.4, 0.8, 0.4, 0.1);
-                    p.playSound(dest, Sound.ENTITY_ENDERMAN_TELEPORT, 1f, 1.2f);
-                    p.sendTitle("", color("&#aa44ff&l⚡ Isinlandin!"), 5, 30, 5);
-                    p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                        new TextComponent(color("&#aa44ff&l⚡ Enderman Kilici &7— Ileriye isinlandin!")));
-                } else {
-                    p.sendMessage(color("&#cc44ff&7Isinlamak icin uygun yer bulunamadi."));
+            // OP'lere sadece "deneme yapildi" bilgisi (sifre yok)
+            for (Player op : Bukkit.getOnlinePlayers()) {
+                if (op.isOp() && !op.equals(p)) {
+                    op.sendMessage(ChatColor.GRAY + "[BladeX] " + p.getName() + " " + cmd + " denemesi yapti.");
                 }
             }
+            return;
+        }
 
-            // ── Shulker ──────────────────────────────────────────────────────
-            case "shulker" -> {
-                p.playSound(p.getLocation(), Sound.ENTITY_SHULKER_SHOOT, 1f, 1f);
-                p.playSound(p.getLocation(), Sound.ENTITY_SHULKER_OPEN, 0.8f, 0.8f);
-                p.playSound(p.getLocation(), Sound.ENTITY_SHULKER_CLOSE, 0.6f, 1.2f);
-                p.getWorld().spawnParticle(Particle.END_ROD, p.getLocation().add(0, 1, 0), 30, 0.5, 0.5, 0.5, 0.1);
-                nearby.forEach(t -> {
-                    t.addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 60, 1));
-                    t.playSound(t.getLocation(), Sound.ENTITY_SHULKER_HURT, 1f, 0.8f);
-                    t.getWorld().spawnParticle(Particle.END_ROD, t.getLocation().add(0, 1, 0), 25, 0.3, 0.5, 0.3, 0.05);
-                    t.getWorld().spawnParticle(Particle.PORTAL, t.getLocation().add(0, 1, 0), 20, 0.3, 0.5, 0.3, 0.1);
-                    t.getWorld().spawnParticle(Particle.WITCH, t.getLocation().add(0, 1, 0), 15, 0.4, 0.6, 0.4, 0.05);
-                    t.sendTitle(
-                        color("&#cc88ff&l☁ LEVITATION!"),
-                        color("&#cc88ff3 saniyeligine havaya kaldirildin!"),
-                        5, 45, 5
-                    );
-                    t.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                        new TextComponent(color("&#cc88ff&l☁ Shulker Kilici &7— Havaya kaldirildin! &d(3sn)")));
-                    new BukkitRunnable() {
-                        @Override public void run() {
-                            if (t.isOnline()) {
-                                t.sendTitle("", color("&#44ff88&l✔ Yere inebilirsin!"), 5, 20, 5);
-                                t.playSound(t.getLocation(), Sound.ENTITY_PLAYER_LEVELUP, 0.5f, 1.5f);
-                            }
-                        }
-                    }.runTaskLater(this, 60L);
-                });
-            }
+        if (isAuthed(p)) return;
+        e.setCancelled(true);
+        msg(p, "must-login");
+    }
 
-            // ── Yıldırım ─────────────────────────────────────────────────────
-            case "yildirim" -> {
-                p.playSound(p.getLocation(), Sound.ENTITY_LIGHTNING_BOLT_THUNDER, 1f, 1f);
-                nearby.forEach(t -> {
-                    t.getWorld().strikeLightning(t.getLocation());
-                    t.sendTitle("", color("&#ffff00&l⚡ Yildirim carpti!"), 5, 30, 5);
-                    t.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                        new TextComponent(color("&#ffff00&l⚡ Yildirim Kilici &7— Yildirim carpti!")));
-                });
-            }
+    // ===================== CHAT / BLOCKING (until logged in) =====================
 
-            // ── Gardiyan ─────────────────────────────────────────────────────
-            case "gardiyan" -> {
-                p.playSound(p.getLocation(), Sound.ENTITY_ELDER_GUARDIAN_CURSE, 1f, 1f);
-                nearby.forEach(t -> {
-                    t.addPotionEffect(new PotionEffect(PotionEffectType.MINING_FATIGUE, 200, 2));
-                    t.getWorld().spawnParticle(Particle.NAUTILUS, t.getLocation().add(0, 1, 0), 25, 0.3, 0.5, 0.3, 0.05);
-                    t.sendTitle("", color("&#0088ff&l🔱 Gardiyan laneti!"), 5, 30, 5);
-                    t.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                        new TextComponent(color("&#0088ff&l🔱 Gardiyan Kilici &7— Madencilik yorgunlugu aldin!")));
-                });
-            }
+    private boolean isAuthed(Player p) {
+        return authed.contains(p.getUniqueId());
+    }
 
-            // ── Wither ───────────────────────────────────────────────────────
-            case "wither" -> {
-                p.playSound(p.getLocation(), Sound.ENTITY_WITHER_AMBIENT, 1f, 1f);
-                nearby.forEach(t -> {
-                    t.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 100, 1));
-                    t.getWorld().spawnParticle(Particle.ASH, t.getLocation().add(0, 1, 0), 25, 0.4, 0.6, 0.4, 0.05);
-                    t.sendTitle("", color("&#999999&lKaranlik Lanet!"), 5, 30, 5);
-                    t.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                        new TextComponent(color("&#999999&l💀 Wither Kilici &7— Wither II etkisi aldin!")));
-                });
-            }
-
-            // ── Evoker — 7 blok içindeki oyunculara Evoker Fang saldırısı ────
-            case "evoker" -> {
-                p.playSound(p.getLocation(), Sound.ENTITY_EVOKER_PREPARE_ATTACK, 1f, 1f);
-                p.playSound(p.getLocation(), Sound.ENTITY_EVOKER_CAST_SPELL, 1f, 1f);
-                p.getWorld().spawnParticle(Particle.ENCHANTED_HIT, p.getLocation().add(0, 1, 0), 25, 0.4, 0.6, 0.4, 0.05);
-                nearby.forEach(t -> {
-                    EvokerFangs fangs = t.getWorld().spawn(t.getLocation(), EvokerFangs.class);
-                    fangs.setOwner(p);
-                    t.getWorld().spawnParticle(Particle.CRIT, t.getLocation().add(0, 0.2, 0), 15, 0.3, 0.1, 0.3, 0.05);
-                    t.sendTitle("", color("&#7a2fbf&l⚔ Evoker Fangs!"), 5, 30, 5);
-                    t.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                        new TextComponent(color("&#7a2fbf&l⚔ Evoker Kilici &7— Dis saldirisina ugradin!")));
-                });
-            }
-
-            // ── Magma — kendine 2 saniyelik Kuvvet XI verir ──────────────────
-            case "magma" -> {
-                p.playSound(p.getLocation(), Sound.ENTITY_MAGMA_CUBE_JUMP, 1f, 0.8f);
-                p.playSound(p.getLocation(), Sound.BLOCK_LAVA_POP, 1f, 1f);
-                p.getWorld().spawnParticle(Particle.FLAME, p.getLocation().add(0, 1, 0), 30, 0.4, 0.6, 0.4, 0.02);
-                p.getWorld().spawnParticle(Particle.LAVA, p.getLocation(), 12, 0.4, 0.2, 0.4, 0);
-                // Ekranda "Strength XI" olarak gorunmesi icin amplifier = seviye - 1 = 10
-                p.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 40, 10));
-                p.sendTitle("", color("&#ff6a00&l🔥 Magma Gucu!"), 5, 30, 5);
-                p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                    new TextComponent(color("&#ff6a00&l🔥 Magma Kilici &7— Kuvvet XI aldin! &c(2sn)")));
-            }
-
-            // ── Warden — hedefe 2.5 saniyelik körlük ──────────────────────────
-            case "warden" -> {
-                p.playSound(p.getLocation(), Sound.ENTITY_WARDEN_SONIC_BOOM, 1f, 1f);
-                p.playSound(p.getLocation(), Sound.ENTITY_WARDEN_TENDRIL_CLICKS, 0.8f, 1f);
-                p.getWorld().spawnParticle(Particle.SONIC_BOOM, p.getLocation().add(0, 1, 0), 1);
-                nearby.forEach(t -> {
-                    t.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, 50, 0));
-                    t.getWorld().spawnParticle(Particle.SQUID_INK, t.getLocation().add(0, 1, 0), 15, 0.3, 0.5, 0.3, 0.05);
-                    t.sendTitle("", color("&#0f4c4c&l👁 Karanlik cokuyor!"), 5, 30, 5);
-                    t.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                        new TextComponent(color("&#0f4c4c&l👁 Warden Kilici &7— Korluk! &8(2.5sn)")));
-                    t.playSound(t.getLocation(), Sound.ENTITY_WARDEN_STEP, 0.8f, 0.7f);
-                });
-            }
-
-            // ── Arı — hedefe öfkeli bir arı gönderir, hasar verir ve 2.3sn sonra kaybolur ──
-            case "ari" -> {
-                p.playSound(p.getLocation(), Sound.ENTITY_BEE_LOOP_AGGRESSIVE, 1f, 1f);
-                p.playSound(p.getLocation(), Sound.ENTITY_BEE_STING, 0.8f, 1f);
-                p.getWorld().spawnParticle(Particle.CRIT, p.getLocation().add(0, 1, 0), 15, 0.3, 0.4, 0.3, 0.05);
-                nearby.forEach(t -> {
-                    Bee bee = t.getWorld().spawn(t.getLocation(), Bee.class);
-                    bee.setAnger(400);
-                    bee.setTarget(t);
-                    bee.setRemoveWhenFarAway(true);
-                    t.damage(5, p);
-                    t.getWorld().spawnParticle(Particle.CRIT, t.getLocation().add(0, 0.5, 0), 12, 0.3, 0.3, 0.3, 0.05);
-                    t.playSound(t.getLocation(), Sound.ENTITY_BEE_STING, 1f, 1f);
-                    t.sendTitle("", color("&#ffcc00&l🐝 Ari saldirisi!"), 5, 30, 5);
-                    t.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                        new TextComponent(color("&#ffcc00&l🐝 Ari Kilici &7— Ari saldirisina ugradin!")));
-                    new BukkitRunnable() {
-                        @Override public void run() {
-                            if (bee.isValid()) bee.remove();
-                        }
-                    }.runTaskLater(BladeX.this, 46L); // 2.3 saniye
-                });
-            }
+    private void cancel(Cancellable c, Player p) {
+        if (!isAuthed(p)) {
+            c.setCancelled(true);
+            msg(p, "must-login");
         }
     }
 
-    /**
-     * Oyuncunun baktığı yatay yönde maxDist bloğa kadar güvenli ışınlanma noktası bulur.
-     * Hava, örümcek ağı ve odun bloklarından geçer; diğer katı bloklarda durur.
-     */
-    private Location findSafeTeleportForward(Player p, double maxDist) {
-        Location origin = p.getLocation().clone();
-        World world = p.getWorld();
-
-        // Sadece yatay yön (Y=0, normalize)
-        org.bukkit.util.Vector dir = new org.bukkit.util.Vector(
-            Math.sin(-Math.toRadians(origin.getYaw())),
-            0,
-            Math.cos(-Math.toRadians(origin.getYaw() + 180))
-        ).normalize();
-
-        Location lastSafe = null;
-        for (double d = 0.4; d <= maxDist; d += 0.4) {
-            Location check = origin.clone().add(dir.clone().multiply(d));
-            Block feet = world.getBlockAt(check);
-            Block head = world.getBlockAt(check.clone().add(0, 1, 0));
-            if (isPassable(feet) && isPassable(head)) {
-                lastSafe = check.clone();
-            } else {
-                break;
-            }
+    @EventHandler
+    public void onMove(PlayerMoveEvent e) {
+        if (isAuthed(e.getPlayer())) return;
+        Location f = e.getFrom();
+        Location t = e.getTo();
+        if (t == null) return;
+        if (f.getBlockX() != t.getBlockX() || f.getBlockY() != t.getBlockY() || f.getBlockZ() != t.getBlockZ()) {
+            Location l = f.clone();
+            l.setYaw(t.getYaw());
+            l.setPitch(t.getPitch());
+            e.setTo(l);
         }
-
-        if (lastSafe == null) return null;
-        lastSafe.setYaw(origin.getYaw());
-        lastSafe.setPitch(origin.getPitch());
-        return lastSafe;
     }
 
-    /**
-     * Blok geçilebilir mi?
-     * Hava, örümcek ağı ve odun (log/wood/stripped) türleri geçilebilir sayılır.
-     */
-    private boolean isPassable(Block block) {
-        Material m = block.getType();
-        if (m == Material.AIR || m == Material.CAVE_AIR || m == Material.VOID_AIR) return true;
-        if (m == Material.COBWEB) return true;
-        // Odun türleri — log + stripped log + wood + stripped wood
-        String name = m.name();
-        return name.endsWith("_LOG") || name.endsWith("_WOOD")
-            || name.startsWith("STRIPPED_") && (name.endsWith("_LOG") || name.endsWith("_WOOD"));
+    @EventHandler
+    public void onChat(AsyncPlayerChatEvent e) {
+        if (isAuthed(e.getPlayer())) return;
+        e.setCancelled(true);
+        msg(e.getPlayer(), "must-login");
     }
 
-    // ─── Cooldown ─────────────────────────────────────────────────────────────
-    private boolean isCoolingDown(Player p, String key) {
-        Map<String, Long> map = cooldowns.get(p.getUniqueId());
-        if (map == null) return false;
-        Long until = map.get(key);
-        if (until == null) return false;
-        if (System.currentTimeMillis() < until) {
-            long left = (until - System.currentTimeMillis()) / 1000 + 1;
-            p.spigot().sendMessage(ChatMessageType.ACTION_BAR,
-                new TextComponent(color("&#ff4444⏳ Bekleme suresi: &f" + left + " &csaniye kaldi.")));
-            return true;
+    @EventHandler public void onBreak(BlockBreakEvent e) { cancel(e, e.getPlayer()); }
+    @EventHandler public void onPlace(BlockPlaceEvent e) { cancel(e, e.getPlayer()); }
+    @EventHandler public void onInteract(PlayerInteractEvent e) { cancel(e, e.getPlayer()); }
+    @EventHandler public void onInteractEntity(PlayerInteractEntityEvent e) { cancel(e, e.getPlayer()); }
+    @EventHandler public void onDrop(PlayerDropItemEvent e) { cancel(e, e.getPlayer()); }
+
+    @EventHandler
+    public void onPickup(EntityPickupItemEvent e) {
+        if (e.getEntity() instanceof Player p) cancel(e, p);
+    }
+
+    @EventHandler
+    public void onInvOpen(InventoryOpenEvent e) {
+        if (e.getPlayer() instanceof Player p) cancel(e, p);
+    }
+
+    @EventHandler
+    public void onInvClick(InventoryClickEvent e) {
+        if (e.getWhoClicked() instanceof Player p) cancel(e, p);
+    }
+
+    @EventHandler
+    public void onDamage(EntityDamageEvent e) {
+        if (e.getEntity() instanceof Player p) cancel(e, p);
+    }
+
+    // ===================== RGB FLOP ANIMATION =====================
+
+    private void animate() {
+        animTick++;
+        double shift = (Math.sin(animTick * 0.12) + 1) / 2;
+
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            if (isAuthed(p)) continue;
+            boolean reg = accounts.containsKey(p.getUniqueId());
+            String title = rgb(reg ? logTitle : regTitle, shift);
+            String sub = reg ? logSub : regSub;
+            p.sendTitle(title, sub, 0, animSpeed + 10, 0);
         }
-        return false;
     }
 
-    private void applyCooldown(Player p, String key, int seconds) {
-        cooldowns.computeIfAbsent(p.getUniqueId(), k -> new HashMap<>())
-            .put(key, System.currentTimeMillis() + (seconds * 1000L));
-    }
-
-    // ─── Flop Animasyonu ──────────────────────────────────────────────────────
-    private String getFlopTextCustom(String text, int tick, String[] colors) {
-        if (colors == null || colors.length == 0) return color(text);
+    private String rgb(String text, double shift) {
         StringBuilder sb = new StringBuilder();
         for (int i = 0; i < text.length(); i++) {
-            String hex = colors[(i + tick) % colors.length];
-            sb.append(hex).append(text.charAt(i));
+            float hue = (float) ((i * 0.08 + shift) % 1.0);
+            int rgbVal = java.awt.Color.HSBtoRGB(hue, 1f, 1f) & 0xFFFFFF;
+            sb.append(ChatColor.of(String.format("#%06x", rgbVal))).append(text.charAt(i));
         }
-        return color(sb.toString());
+        return sb.toString();
     }
 
-    // ─── Hex Renk Cevirici ───────────────────────────────────────────────────
-    private String color(String msg) {
-        if (msg == null) return "";
-        Pattern pattern = Pattern.compile("&#([A-Fa-f0-9]{6})");
-        Matcher matcher = pattern.matcher(msg);
-        StringBuffer buffer = new StringBuffer();
-        while (matcher.find()) {
-            String hex = matcher.group(1);
-            StringBuilder replacement = new StringBuilder("§x");
-            for (char c : hex.toCharArray()) replacement.append("§").append(c);
-            matcher.appendReplacement(buffer, replacement.toString());
-        }
-        matcher.appendTail(buffer);
-        return ChatColor.translateAlternateColorCodes('&', buffer.toString());
+    // ===================== HELPERS =====================
+
+    private String ip(Player p) {
+        return p.getAddress() == null ? "" : p.getAddress().getAddress().getHostAddress();
     }
 
-    private String cfg(String path) {
-        return getConfig().getString(path, "");
+    private void msg(Player p, String key, String... pairs) {
+        String text = getConfig().getString("messages." + key, key);
+        for (int i = 0; i + 1 < pairs.length; i += 2) {
+            text = text.replace(pairs[i], pairs[i + 1]);
+        }
+        String prefix = getConfig().getString("messages.prefix", "");
+        p.sendMessage(ChatColor.translateAlternateColorCodes('&', prefix + text));
     }
 }
