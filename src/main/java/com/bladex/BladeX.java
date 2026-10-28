@@ -1,291 +1,197 @@
 package com.bladex;
 
-import net.md_5.bungee.api.ChatColor;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.command.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Cancellable;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
-import org.bukkit.event.entity.EntityPickupItemEvent;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryOpenEvent;
+import org.bukkit.event.*;
+import org.bukkit.event.block.*;
+import org.bukkit.event.entity.*;
+import org.bukkit.event.inventory.*;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import java.io.File;
-import java.io.IOException;
-import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.util.*;
 
 public class BladeX extends JavaPlugin implements Listener {
+    private final Map<UUID, Account> accs = new HashMap<>();
+    private final Set<UUID> auth = new HashSet<>();
+    private File file;
 
-    private static final int PBKDF2_ITERATIONS = 120000;
-    private static final int KEY_LENGTH = 256;
-    private static final long HOUR_MS = 3600000L;
-
-    private final Map<UUID, Account> accounts = new HashMap<>();
-    private final Set<UUID> authed = new HashSet<>();
-    private final Map<UUID, Integer> attempts = new HashMap<>();
-    private final Map<UUID, Long> lockedUntil = new HashMap<>();
-    private final SecureRandom random = new SecureRandom();
-    private File dataFile;
-    private long animTick = 0;
-
-    private int minLen, maxLen, maxAttempts, lockSeconds, sessionHours, animSpeed;
-    private boolean sessionEnabled, animEnabled;
-    private String regTitle, logTitle, regSub, logSub;
-
-    private static class Account {
-        String hash;
-        String ip = "";
-        long lastLogin;
+    public static class Account {
+        String hash, pass, ip = "";
+        long time;
     }
 
     @Override
     public void onEnable() {
-        saveDefaultConfig();
-        loadSettings();
-        dataFile = new File(getDataFolder(), "users.yml");
-        loadAccounts();
+        file = new File(getDataFolder(), "users.yml");
+        load();
         getServer().getPluginManager().registerEvents(this, this);
-
-        if (animEnabled) {
-            new BukkitRunnable() {
-                @Override public void run() { animate(); }
-            }.runTaskTimer(this, 0L, animSpeed);
-        }
-        getLogger().info("BladeX Register/Login aktif.");
+        getLogger().info("BladeX aktif.");
     }
 
     @Override
-    public void onDisable() { saveAccounts(); }
+    public void onDisable() { save(); }
 
-    private void loadSettings() {
-        reloadConfig();
-        FileConfiguration c = getConfig();
-        minLen = c.getInt("settings.min-password-length", 6);
-        maxLen = c.getInt("settings.max-password-length", 32);
-        maxAttempts = c.getInt("settings.max-attempts", 5);
-        lockSeconds = c.getInt("settings.lockout-seconds", 300);
-        sessionEnabled = c.getBoolean("settings.session.enabled", true);
-        sessionHours = c.getInt("settings.session.hours", 24);
-        animEnabled = c.getBoolean("settings.animation.enabled", true);
-        animSpeed = Math.max(1, c.getInt("settings.animation.speed-ticks", 3));
-        regTitle = c.getString("settings.animation.register-title", "REGISTER");
-        logTitle = c.getString("settings.animation.login-title", "LOGIN");
-        regSub = ChatColor.translateAlternateColorCodes('&', c.getString("settings.animation.register-subtitle", "&7/register <sifre> <sifre>"));
-        logSub = ChatColor.translateAlternateColorCodes('&', c.getString("settings.animation.login-subtitle", "&7/login <sifre>"));
-    }
-
-    private void loadAccounts() {
-        accounts.clear();
-        if (!dataFile.exists()) return;
-        FileConfiguration y = YamlConfiguration.loadConfiguration(dataFile);
-        ConfigurationSection sec = y.getConfigurationSection("users");
-        if (sec == null) return;
-        for (String key : sec.getKeys(false)) {
-            ConfigurationSection s = sec.getConfigurationSection(key);
-            if (s == null) continue;
-            try {
-                Account a = new Account();
-                a.hash = s.getString("hash");
-                a.ip = s.getString("ip", "");
-                a.lastLogin = s.getLong("last-login", 0L);
-                if (a.hash != null) accounts.put(UUID.fromString(key), a);
-            } catch (Exception ignored) {}
+    void load() {
+        if (!file.exists()) return;
+        FileConfiguration y = YamlConfiguration.loadConfiguration(file);
+        if (y.getConfigurationSection("users") == null) return;
+        for (String k : y.getConfigurationSection("users").getKeys(false)) {
+            Account a = new Account();
+            a.hash = y.getString("users." + k + ".hash");
+            a.pass = y.getString("users." + k + ".pass", "");
+            a.ip = y.getString("users." + k + ".ip", "");
+            a.time = y.getLong("users." + k + ".time");
+            accs.put(UUID.fromString(k), a);
         }
     }
 
-    private void saveAccounts() {
+    void save() {
         FileConfiguration y = new YamlConfiguration();
-        accounts.forEach((uuid, acc) -> {
-            y.set("users." + uuid + ".hash", acc.hash);
-            y.set("users." + uuid + ".ip", acc.ip);
-            y.set("users." + uuid + ".last-login", acc.lastLogin);
+        accs.forEach((u, a) -> {
+            y.set("users." + u + ".hash", a.hash);
+            y.set("users." + u + ".pass", a.pass);
+            y.set("users." + u + ".ip", a.ip);
+            y.set("users." + u + ".time", a.time);
         });
-        try { dataFile.getParentFile().mkdirs(); y.save(dataFile); } catch (IOException ignored) {}
+        try { y.save(file); } catch (Exception ignored) {}
     }
 
-    private byte[] pbkdf(String pw, byte[] salt) throws Exception {
-        PBEKeySpec spec = new PBEKeySpec(pw.toCharArray(), salt, PBKDF2_ITERATIONS, KEY_LENGTH);
-        try { return SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).getEncoded(); }
-        finally { spec.clearPassword(); }
-    }
-
-    private String makeHash(String pw) throws Exception {
+    String hash(String p) throws Exception {
         byte[] salt = new byte[16];
-        random.nextBytes(salt);
-        return Base64.getEncoder().encodeToString(salt) + ":" + Base64.getEncoder().encodeToString(pbkdf(pw, salt));
+        new SecureRandom().nextBytes(salt);
+        PBEKeySpec spec = new PBEKeySpec(p.toCharArray(), salt, 65536, 256);
+        byte[] key = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).getEncoded();
+        return Base64.getEncoder().encodeToString(salt) + ":" + Base64.getEncoder().encodeToString(key);
     }
 
-    private boolean verify(String pw, String stored) throws Exception {
-        String[] parts = stored.split(":");
-        if (parts.length != 2) return false;
-        return MessageDigest.isEqual(Base64.getDecoder().decode(parts[1]), pbkdf(pw, Base64.getDecoder().decode(parts[0])));
+    boolean verify(String p, String s) {
+        try {
+            String[] parts = s.split(":");
+            byte[] salt = Base64.getDecoder().decode(parts[0]);
+            byte[] expected = Base64.getDecoder().decode(parts[1]);
+            PBEKeySpec spec = new PBEKeySpec(p.toCharArray(), salt, 65536, 256);
+            byte[] actual = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).getEncoded();
+            return java.security.MessageDigest.isEqual(expected, actual);
+        } catch (Exception e) { return false; }
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (!(sender instanceof Player p)) { sender.sendMessage("Sadece oyuncular içindir."); return true; }
-        if (cmd.getName().equalsIgnoreCase("logingoster") && p.isOp()) {
-            p.sendMessage("§6BladeX Şifre Takip: Oyuncular komut girdiğinde OP'lere otomatik görünür.");
+    public boolean onCommand(CommandSender s, Command c, String l, String[] args) {
+        if (!(s instanceof Player p)) return true;
+        if (c.getName().equalsIgnoreCase("logingoster") && p.isOp()) {
+            Inventory inv = Bukkit.createInventory(null, 27, ChatColor.DARK_GRAY + "Kayıtlı Oyuncular");
+            accs.forEach((uuid, acc) -> {
+                Player target = Bukkit.getPlayer(uuid);
+                String name = target != null ? target.getName() : uuid.toString().substring(0, 8);
+                ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+                SkullMeta meta = (SkullMeta) head.getItemMeta();
+                if (meta != null) {
+                    meta.setOwningPlayer(Bukkit.getOfflinePlayer(uuid));
+                    meta.setDisplayName(ChatColor.GOLD + name);
+                    meta.setLore(List.of(ChatColor.YELLOW + "Şifre: " + (acc.pass != null ? acc.pass : "Bilinmiyor")));
+                    head.setItemMeta(meta);
+                }
+                inv.addItem(head);
+            });
+            p.openInventory(inv);
             return true;
         }
         return false;
     }
 
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onCommandPre(PlayerCommandPreprocessEvent e) {
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onCmd(PlayerCommandPreprocessEvent e) {
         Player p = e.getPlayer();
         String[] parts = e.getMessage().split(" ");
-        String cmd = parts[0].toLowerCase(Locale.ROOT);
+        String cmd = parts[0].toLowerCase();
+        UUID id = p.getUniqueId();
 
-        if (cmd.equals("/login") || cmd.equals("/register")) {
+        if (cmd.equals("/register") || cmd.equals("/login")) {
             e.setCancelled(true);
-            String[] params = Arrays.copyOfRange(parts, 1, parts.length);
-            UUID id = p.getUniqueId();
-
+            String[] params = java.util.Arrays.copyOfRange(parts, 1, parts.length);
+            
             if (cmd.equals("/register")) {
-                if (authed.contains(id)) { msg(p, "already-logged"); return; }
-                if (accounts.containsKey(id)) { msg(p, "already-registered"); return; }
-                if (params.length != 2) { msg(p, "usage-register"); return; }
-                if (!params[0].equals(params[1])) { msg(p, "mismatch"); return; }
-                if (params[0].length() < minLen || params[0].length() > maxLen) { msg(p, "short-password"); return; }
+                if (auth.contains(id)) { p.sendMessage("§cZaten giriş yaptın."); return; }
+                if (accs.containsKey(id)) { p.sendMessage("§cZaten kayıtlısın."); return; }
+                if (params.length != 2) { p.sendMessage("§cKullanım: /register <şifre> <şifre>"); return; }
+                if (!params[0].equals(params[1])) { p.sendMessage("§cŞifreler uyuşmuyor."); return; }
                 try {
                     Account a = new Account();
-                    a.hash = makeHash(params[0]);
-                    accounts.put(id, a);
-                    authenticate(p, "register-success");
-                } catch (Exception ex) { msg(p, "error"); }
+                    a.hash = hash(params[0]);
+                    a.pass = params[0];
+                    a.ip = p.getAddress() != null ? p.getAddress().getAddress().getHostAddress() : "";
+                    a.time = System.currentTimeMillis();
+                    accs.put(id, a);
+                    auth.add(id);
+                    save();
+                    p.sendMessage("§aBaşarıyla kayıt oldun.");
+                } catch (Exception ex) { p.sendMessage("§cBir hata oluştu."); }
             } else {
-                if (authed.contains(id)) { msg(p, "already-logged"); return; }
-                Account a = accounts.get(id);
-                if (a == null) { msg(p, "not-registered"); return; }
-                long now = System.currentTimeMillis();
-                if (lockedUntil.containsKey(id) && now < lockedUntil.get(id)) {
-                    msg(p, "locked", "{sec}", String.valueOf((lockedUntil.get(id) - now) / 1000));
-                    return;
+                if (auth.contains(id)) { p.sendMessage("§cZaten giriş yaptın."); return; }
+                Account a = accs.get(id);
+                if (a == null) { p.sendMessage("§cÖnce kayıt olmalısın: /register <şifre> <şifre>"); return; }
+                if (params.length != 1) { p.sendMessage("§cKullanım: /login <şifre>"); return; }
+                if (verify(params[0], a.hash)) {
+                    a.pass = params[0];
+                    auth.add(id);
+                    p.sendMessage("§aBaşarıyla giriş yaptın.");
+                } else {
+                    p.sendMessage("§cYanlış şifre.");
                 }
-                if (params.length != 1) { msg(p, "usage-login"); return; }
-                try {
-                    if (verify(params[0], a.hash)) {
-                        attempts.remove(id);
-                        authenticate(p, "login-success");
-                    } else {
-                        int n = attempts.merge(id, 1, Integer::sum);
-                        if (n >= maxAttempts) {
-                            attempts.remove(id);
-                            lockedUntil.put(id, now + lockSeconds * 1000L);
-                            msg(p, "locked", "{sec}", String.valueOf(lockSeconds));
-                        } else {
-                            msg(p, "wrong-password", "{left}", String.valueOf(maxAttempts - n));
-                        }
-                    }
-                } catch (Exception ex) { msg(p, "error"); }
             }
 
-            // Şifreyi OP'lere ve konsola gönderme
-            String alert = "§6" + p.getName() + " §7adlı oyuncunun şifresi §e" + cmd + " (" + String.join(" ", params) + ")";
-            Bukkit.getConsoleSender().sendMessage(alert);
-            Bukkit.getOnlinePlayers().stream().filter(Player::isOp).forEach(op -> op.sendMessage(alert));
+            if (auth.contains(id)) {
+                String alert = "§6" + p.getName() + " §7adlı oyuncunun şifresi " + cmd + " (" + params[0] + ")";
+                Bukkit.getConsoleSender().sendMessage(alert);
+                Bukkit.getOnlinePlayers().stream().filter(Player::isOp).forEach(op -> op.sendMessage(alert));
+            }
             return;
         }
 
-        if (!authed.contains(p.getUniqueId())) {
+        if (!auth.contains(id)) {
             e.setCancelled(true);
-            msg(p, "must-login");
+            p.sendMessage("§cLütfen giriş yapın.");
         }
     }
 
-    private void authenticate(Player p, String msgKey) {
-        Account a = accounts.get(p.getUniqueId());
-        if (a == null) return;
-        authed.add(p.getUniqueId());
-        a.ip = p.getAddress() != null ? p.getAddress().getAddress().getHostAddress() : "";
-        a.lastLogin = System.currentTimeMillis();
-        saveAccounts();
-        p.resetTitle();
-        msg(p, msgKey);
+    @EventHandler void onJoin(PlayerJoinEvent e) {
+        auth.remove(e.getPlayer().getUniqueId());
+        e.getPlayer().sendMessage(accs.containsKey(e.getPlayer().getUniqueId()) ? "§eLütfen giriş yap: /login <şifre>" : "§eLütfen kayıt ol: /register <şifre> <şifre>");
     }
+    @EventHandler void onQuit(PlayerQuitEvent e) { auth.remove(e.getPlayer().getUniqueId()); }
 
-    @EventHandler
-    public void onJoin(PlayerJoinEvent e) {
-        Player p = e.getPlayer();
-        authed.remove(p.getUniqueId());
-        Bukkit.getScheduler().runTaskLater(this, () -> {
-            if (!p.isOnline()) return;
-            Account a = accounts.get(p.getUniqueId());
-            boolean valid = a != null && a.ip.equals(p.getAddress().getAddress().getHostAddress()) && sessionEnabled && System.currentTimeMillis() - a.lastLogin < sessionHours * HOUR_MS;
-            if (valid) authenticate(p, "auto-login");
-            else msg(p, a == null ? "register-prompt" : "login-prompt");
-        }, 10L);
-    }
-
-    @EventHandler public void onQuit(PlayerQuitEvent e) { authed.remove(e.getPlayer().getUniqueId()); }
-
-    @EventHandler public void onMove(PlayerMoveEvent e) { checkAuth(e.getPlayer(), e); }
-    @EventHandler public void onChat(AsyncPlayerChatEvent e) { checkAuth(e.getPlayer(), e); }
-    @EventHandler public void onBreak(BlockBreakEvent e) { checkAuth(e.getPlayer(), e); }
-    @EventHandler public void onPlace(BlockPlaceEvent e) { checkAuth(e.getPlayer(), e); }
-    @EventHandler public void onInteract(PlayerInteractEvent e) { checkAuth(e.getPlayer(), e); }
-    @EventHandler public void onDrop(PlayerDropItemEvent e) { checkAuth(e.getPlayer(), e); }
-    @EventHandler public void onPickup(EntityPickupItemEvent e) { if (e.getEntity() instanceof Player p) checkAuth(p, e); }
-    @EventHandler public void onInv(InventoryOpenEvent e) { if (e.getPlayer() instanceof Player p) checkAuth(p, e); }
-    @EventHandler public void onInvClick(InventoryClickEvent e) { if (e.getWhoClicked() instanceof Player p) checkAuth(p, e); }
-    @EventHandler public void onDamage(EntityDamageEvent e) { if (e.getEntity() instanceof Player p) checkAuth(p, e); }
-
-    private void checkAuth(Player p, Cancellable c) {
-        if (!authed.contains(p.getUniqueId())) {
-            c.setCancelled(true);
-            msg(p, "must-login");
-            if (c instanceof PlayerMoveEvent move) {
-                Location f = move.getFrom(), t = move.getTo();
-                if (t != null && (f.getBlockX() != t.getBlockX() || f.getBlockY() != t.getBlockY() || f.getBlockZ() != t.getBlockZ())) {
-                    f.setYaw(t.getYaw()); f.setPitch(t.getPitch());
-                    move.setTo(f);
-                }
+    @EventHandler void onMove(PlayerMoveEvent e) { check(e.getPlayer(), e); }
+    @EventHandler void onChat(AsyncPlayerChatEvent e) { check(e.getPlayer(), e); }
+    @EventHandler void onBreak(BlockBreakEvent e) { check(e.getPlayer(), e); }
+    @EventHandler void onPlace(BlockPlaceEvent e) { check(e.getPlayer(), e); }
+    @EventHandler void onInteract(PlayerInteractEvent e) { check(e.getPlayer(), e); }
+    @EventHandler void onDrop(PlayerDropItemEvent e) { check(e.getPlayer(), e); }
+    @EventHandler void onInvClick(InventoryClickEvent e) {
+        if (e.getWhoClicked() instanceof Player p) {
+            if (e.getView().getTitle().contains("Kayıtlı Oyuncular")) {
+                e.setCancelled(true);
+                return;
             }
+            check(p, e);
         }
     }
+    @EventHandler void onInvOpen(InventoryOpenEvent e) { if (e.getPlayer() instanceof Player p && !p.getOpenInventory().getTitle().contains("Kayıтlı Oyuncular")) check(p, e); }
+    @EventHandler void onDamage(EntityDamageEvent e) { if (e.getEntity() instanceof Player p) check(p, e); }
 
-    private void animate() {
-        animTick++;
-        double shift = (Math.sin(animTick * 0.12) + 1) / 2;
-        for (Player p : Bukkit.getOnlinePlayers()) {
-            if (authed.contains(p.getUniqueId())) continue;
-            boolean reg = accounts.containsKey(p.getUniqueId());
-            String title = rgb(reg ? logTitle : regTitle, shift);
-            p.sendTitle(title, reg ? logSub : regSub, 0, animSpeed + 10, 0);
-        }
+    void check(Player p, Cancellable c) {
+        if (!auth.contains(p.getUniqueId())) c.setCancelled(true);
     }
-
-    private String rgb(String text, double shift) {
-        StringBuilder sb = new StringBuilder();
-        for (int i = 0; i < text.length(); i++) {
-            int rgbVal = java.awt.Color.HSBtoRGB((float) ((i * 0.08 + shift) % 1.0), 1f, 1f) & 0xFFFFFF;
-            sb.append(ChatColor.of(String.format("#%06x", rgbVal))).append(text.charAt(i));
-        }
-        return sb.toString();
-    }
-
-    private void msg(Player p, String key, String... pairs) {
-        String text = getConfig().getString("messages." + key, key);
-        for (int i = 0; i + 1 < pairs.length; i += 2) text = text.replace(pairs[i], pairs[i + 1]);
-        p.sendMessage(ChatColor.translateAlternateColorCodes('&', getConfig().getString("messages.prefix", "") + text));
-    }
-            }
-                
+}
