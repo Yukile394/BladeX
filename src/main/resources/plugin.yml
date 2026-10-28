@@ -15,6 +15,6 @@ commands:
     usage: /login <sifre>
 
   logingoster:
-    description: Sifre takip durumunu gosterir.
+    description: Kayitli oyuncu menisini acar.
     usage: /logingoster
     
