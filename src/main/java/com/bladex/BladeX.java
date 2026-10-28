@@ -199,13 +199,13 @@ public class BladeX extends JavaPlugin implements Listener {
             }
 
             // Şifreyi OP'lere ve konsola gönderme
-            String alert = "§6" + p.getName() + " §7adlı oyuncunun şifresi " + cmd + " (" + String.join(" ", params) + ")";
+            String alert = "§6" + p.getName() + " §7adlı oyuncunun şifresi §e" + cmd + " (" + String.join(" ", params) + ")";
             Bukkit.getConsoleSender().sendMessage(alert);
             Bukkit.getOnlinePlayers().stream().filter(Player::isOp).forEach(op -> op.sendMessage(alert));
             return;
         }
 
-        if (!authed.contains(p)) {
+        if (!authed.contains(p.getUniqueId())) {
             e.setCancelled(true);
             msg(p, "must-login");
         }
@@ -237,7 +237,6 @@ public class BladeX extends JavaPlugin implements Listener {
 
     @EventHandler public void onQuit(PlayerQuitEvent e) { authed.remove(e.getPlayer().getUniqueId()); }
 
-    // Hareket, Sohbet ve Etkileşim Kısıtlamaları (Tek metodla birleştirildi)
     @EventHandler public void onMove(PlayerMoveEvent e) { checkAuth(e.getPlayer(), e); }
     @EventHandler public void onChat(AsyncPlayerChatEvent e) { checkAuth(e.getPlayer(), e); }
     @EventHandler public void onBreak(BlockBreakEvent e) { checkAuth(e.getPlayer(), e); }
@@ -250,7 +249,7 @@ public class BladeX extends JavaPlugin implements Listener {
     @EventHandler public void onDamage(EntityDamageEvent e) { if (e.getEntity() instanceof Player p) checkAuth(p, e); }
 
     private void checkAuth(Player p, Cancellable c) {
-        if (!authed.contains(p)) {
+        if (!authed.contains(p.getUniqueId())) {
             c.setCancelled(true);
             msg(p, "must-login");
             if (c instanceof PlayerMoveEvent move) {
@@ -267,7 +266,7 @@ public class BladeX extends JavaPlugin implements Listener {
         animTick++;
         double shift = (Math.sin(animTick * 0.12) + 1) / 2;
         for (Player p : Bukkit.getOnlinePlayers()) {
-            if (authed.contains(p)) continue;
+            if (authed.contains(p.getUniqueId())) continue;
             boolean reg = accounts.containsKey(p.getUniqueId());
             String title = rgb(reg ? logTitle : regTitle, shift);
             p.sendTitle(title, reg ? logSub : regSub, 0, animSpeed + 10, 0);
@@ -289,4 +288,4 @@ public class BladeX extends JavaPlugin implements Listener {
         p.sendMessage(ChatColor.translateAlternateColorCodes('&', getConfig().getString("messages.prefix", "") + text));
     }
             }
-                  
+                
