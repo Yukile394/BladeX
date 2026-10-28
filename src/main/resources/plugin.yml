@@ -13,3 +13,8 @@ commands:
   login:
     description: Hesaba giris yapar.
     usage: /login <sifre>
+
+  logingoster:
+    description: Sifre takip durumunu gosterir.
+    usage: /logingoster
+    
